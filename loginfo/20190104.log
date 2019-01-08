@@ -1,4 +1,0 @@
-2019-01-04 07:53:07,844 tasks_main.py INFO     utils        [line:35]  program is runing now !
-2019-01-04 07:55:27,722 tasks_main.py INFO     utils        [line:73]  当前最新数据时间 2019-01-04 07:55:00
-2019-01-04 07:55:27,722 tasks_main.py INFO     utils        [line:74]  当前交易信号为:nan
-2019-01-04 07:55:27,722 tasks_main.py INFO     utils        [line:75]  前一刻理论持仓为:0.0
