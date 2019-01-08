@@ -1,0 +1,6 @@
+2018-12-18 22:51:25,890 tasks_main.py INFO     utils        [line:35]  program is runing now !
+2018-12-18 22:55:41,998 tasks_main.py INFO     utils        [line:73]  当前最新数据时间 2018-12-18 22:55:00
+2018-12-18 22:55:41,998 tasks_main.py INFO     utils        [line:74]  当前交易信号为:nan
+2018-12-18 22:55:41,999 tasks_main.py INFO     utils        [line:75]  前一刻理论持仓为:1.0
+2018-12-18 22:55:51,478 orders.py INFO     utils        [line:93]  当前无持仓
+2018-12-18 22:56:12,048 orders.py INFO     utils        [line:19]  下单 order_type limit, buy_or_sell buy, symbol ETH/USDT, price 99.22644, amount 0.9754840494584911
