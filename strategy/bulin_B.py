@@ -1,5 +1,6 @@
 '''
-海龟策略，唐安琪通道+均幅指标ATR
+布林线+%b指标
+通过%b用距离来衡量穿越上下线，0时即为简单布林
 '''
 
 from common import utils
@@ -9,11 +10,11 @@ pd.set_option('expand_frame_repr', False)  # 当列太多时不换行
 pd.set_option('display.max_rows', 1000)
 
 
+# ===布林线策略
 '''
-ATR技术指标并不能直接反映价格走向及其趋势稳定性，而只是表明价格波动的程度；
-该指标价值越高，趋势改变的可能性就越高；该指标的价值越低，趋势的移动性就越弱。
+通过判断布林上下轨，改成判断%b指标，从而多了一个参数th，控制穿过的阈值
 '''
-def signal_indicator(df, para=[100, 2, 0.1]):
+def signal_bolling(df, para=[100, 2, 0]):
     """
     布林线中轨：n天收盘价的移动平均线
     布林线上轨：n天收盘价的移动平均线 + m * n天收盘价的标准差
@@ -29,7 +30,7 @@ def signal_indicator(df, para=[100, 2, 0.1]):
     # ===计算指标
     n = para[0]
     m = para[1]
-    th= para[2]
+    th= para[2]#0时即为简单布林
     # 计算均线
     df['median'] = df['close'].rolling(n, min_periods=1).mean() #n日的均值
 
@@ -45,7 +46,7 @@ def signal_indicator(df, para=[100, 2, 0.1]):
 
     # ===找出做多信号
     # k线由下而上穿越（中线+偏移）
-    condition1 = df['bbPb'] > (1-th) # 当前K线的收盘价 > %b线的0.6,  0.5为中线
+    condition1 = df['bbPb'] > (1-th) # 当前K线的收盘价 > %b线的0.6,  0.5为中线,1为上轨，0为下轨
     condition2 = df['bbPb'].shift(1) <= (1-th)  # 前一刻K线的收盘价 <= （中线+偏移）
 
     df.loc[condition1 & condition2 , 'signal_long'] = 1  # 将产生做多信号的那根K线的signal设置为1，1代表做多

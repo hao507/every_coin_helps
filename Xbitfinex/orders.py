@@ -19,6 +19,7 @@ def place_order_bitfinex(exchange, order_type, buy_or_sell, symbol, price, amoun
     logger.info('下单 order_type： %s, buy_or_sell： %s, symbol： %s, price： %s, amount： %s', order_type, buy_or_sell, symbol, price, amount)
 
     content_txt = '执行时间：' + datetime.now().strftime("%Y-%m-%d %H:%M:%S")+'\n持仓情况（损益，损益百分比）：'+comment+'\n 执行参数（价格，数量）：'+str(price)+' '+str(amount)
+    logger.info('邮件正文：', content_txt)
     threading.Thread(target=send_mail, args=(buy_or_sell+' '+symbol, content_txt)).start()
 
     order_info = None
@@ -109,13 +110,13 @@ def auto_trade_leverage(exchange_v2, symbol, signal,signal_before, para = list()
 
     # 生成平单的注释，邮件中提醒损益情况
     note = ''
-    trade_coin = 'BTC'
     if trade_coin in position_list:
         _index = position_list.index(trade_coin)
         if len(position[_index]) > 7:
             profit_loss = position[_index][6]
             profit_loss_percent = position[_index][7]
             note = profit_loss +' '+profit_loss_percent
+            logger.info('交易注释生成：',note)
 
     #操作下单动作
     loop_count =0

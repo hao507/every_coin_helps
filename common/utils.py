@@ -18,7 +18,7 @@ def debug_hander(log_name):
     # 创建一个handler，用于写入日志文件
     name = os.path.abspath(os.path.join(os.path.dirname(__file__), "../loginfo")) + '/' + time.strftime("%Y%m%d") + '.log'
     fh = logging.FileHandler(filename=name, mode='w')
-    fh.setLevel(logging.INFO)
+    fh.setLevel(logging.DEBUG)
 
     # 再创建一个handler，用于输出到控制台
     ch = logging.StreamHandler()
