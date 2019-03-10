@@ -14,7 +14,7 @@ pd.set_option('display.max_rows', 1000)
 '''
 通过判断布林上下轨，改成判断%b指标，从而多了一个参数th，控制穿过的阈值
 '''
-def signal_bolling(df, para=[100, 2, 0, 0]):
+def signal_bolling(df, para=[100, 2, 0, 0, 1.5]):
     """
     布林线中轨：n天收盘价的移动平均线
     布林线上轨：n天收盘价的移动平均线 + m * n天收盘价的标准差
@@ -23,7 +23,8 @@ def signal_bolling(df, para=[100, 2, 0, 0]):
     带宽指标值 = (布林带上轨值−布林带下轨值) ÷布林带中轨值
 
     :param df:  原始数据
-    :param para:  参数，[n, m, th,th2], n天均线；m倍自由差；th为阈值，为0时，为标准简单布林;th2为距离中线的阈值
+    :param para:  参数，[n, m, th,th2], n天均线；m倍自由差；th为阈值，为0时，为标准简单布林; th2为距离中线的阈值；
+                th3为#突变穿越上下轨时，该时刻的收盘价与开盘价差占该线的比例值，设置成100以上可以取消该条件.该参数主要防止插针导致的购买信号
     :return:
     """
 
@@ -32,6 +33,8 @@ def signal_bolling(df, para=[100, 2, 0, 0]):
     m = para[1]
     th= para[2]#0时即为简单布林，为穿越上下线
     th2=para[3]#0时即为穿越中线
+    th3 = para[4] #突变穿越上下轨时，该时刻的收盘价与开盘价差占该线的比例值
+
     # 计算均线
     df['median'] = df['close'].rolling(n, min_periods=1).mean() #n日的均值
 
@@ -48,8 +51,8 @@ def signal_bolling(df, para=[100, 2, 0, 0]):
     # k线由下而上穿越（中线+偏移）
     condition1 = df['bbPb'] > (1-th) # 当前K线的收盘价 > %b线的0.6,  0.5为中线,1为上轨，0为下轨
     condition2 = df['bbPb'].shift(1) <= (1-th)  # 前一刻K线的收盘价 <= （中线+偏移）
-
-    df.loc[condition1 & condition2 , 'signal_long'] = 1  # 将产生做多信号的那根K线的signal设置为1，1代表做多
+    condition3 = ((df['close']-df['open'])/(df['upper']-df['median'])) < th3 #穿越必须是慢动作，而不能突变太快
+    df.loc[condition1 & condition2 & condition3 , 'signal_long'] = 1  # 将产生做多信号的那根K线的signal设置为1，1代表做多
 
     # ===找出做多平仓信号
     condition1 = df['bbPb'] < 0.5+th2
@@ -59,7 +62,8 @@ def signal_bolling(df, para=[100, 2, 0, 0]):
     # ===找出做空信号
     condition1 = df['bbPb'] < (0+th)
     condition2 = df['bbPb'].shift(1) >= (0+th)
-    df.loc[condition1 & condition2, 'signal_short'] = -1  # 将产生做空信号的那根K线的signal设置为-1，-1代表做空
+    condition3 = ((df['open'] - df['close']) / (df['median']-df['lower'])) < th3
+    df.loc[condition1 & condition2 & condition3, 'signal_short'] = -1  # 将产生做空信号的那根K线的signal设置为-1，-1代表做空
 
     # ===找出做空平仓信号
     condition1 = df['bbPb'] > 0.5+th2
