@@ -18,8 +18,8 @@ def place_order_bitfinex(exchange, order_type, buy_or_sell, symbol, price, amoun
     """
     logger.info('下单 order_type： %s, buy_or_sell： %s, symbol： %s, price： %s, amount： %s', order_type, buy_or_sell, symbol, price, amount)
 
-    content_txt = '执行时间：' + datetime.now().strftime("%Y-%m-%d %H:%M:%S")+'\n持仓情况（损益，损益百分比）：'+comment+'\n 执行参数（价格，数量）：'+str(price)+' '+str(amount)
-    logger.info('邮件正文：', content_txt)
+    content_txt = '执行时间：' + datetime.now().strftime("%Y-%m-%d %H:%M:%S")+'\n持仓情况(损益，损益百分比)：'+comment+'\n 执行参数（价格，数量）：'+str(price)+'，'+str(amount)
+    logger.info('邮件正文：%s', content_txt)
     threading.Thread(target=send_mail, args=(buy_or_sell+' '+symbol, content_txt)).start()
 
     order_info = None
@@ -103,10 +103,10 @@ def auto_trade_leverage(exchange_v2, symbol, signal,signal_before, para = list()
             position_list.append(position_symbol)
             position_amount = p[2]
             position_all_amount.append(position_amount)
-        print(position_list)
+        logger.info('所有持仓币种：%s',position_list)
         #显示第一位的币种情况
-        logger.info('持仓币种 %s', position_list[0])
-        logger.info('持仓数量 %s', position_all_amount[0])
+        logger.info('首个持仓币种 %s', position_list[0])
+        logger.info('首个持仓数量 %s', position_all_amount[0])
 
     # 生成平单的注释，邮件中提醒损益情况
     note = ''
@@ -115,8 +115,8 @@ def auto_trade_leverage(exchange_v2, symbol, signal,signal_before, para = list()
         if len(position[_index]) > 7:
             profit_loss = position[_index][6]
             profit_loss_percent = position[_index][7]
-            note = profit_loss +' '+profit_loss_percent
-            logger.info('交易注释生成：',note)
+            note = str(profit_loss) +'，'+str(profit_loss_percent)
+            logger.info('交易注释生成：%s',note)
 
     #操作下单动作
     loop_count =0
