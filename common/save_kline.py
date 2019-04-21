@@ -12,7 +12,6 @@ from common import utils
 
 doTime = pd.datetime.today().date()  # 记录当前日期
 execF = False
-ncount = 0
 
 eos_df = pd.DataFrame()
 eth_df = pd.DataFrame()
