@@ -1,6 +1,7 @@
 import ccxt
 import platform
 #ccxt (1.17.545)
+#python 3.6）
 print('ccxt_version:',ccxt.__version__)
 print('python_version:',platform.python_version())
 
@@ -11,8 +12,8 @@ def okex_instance():
             'http': 'http://127.0.0.1:1087',  # these proxies won't work for you, they are here for yuan
             'https': 'https://127.0.0.1:1087',
             },
-        'apiKey': '',
-        'secret': '',
+        'apiKey': '5bc22ba0-d935-4770-970f-a39270bb9a64',
+        'secret': 'CAE57763C9A95E34E1841DE6BD900ED1',
         'verbose': False
     }
     exchange = getattr(ccxt, 'okex')(params)
@@ -26,8 +27,8 @@ def bitfinex_instance():
             'http': 'http://127.0.0.1:1087',  # these proxies won't work for you, they are here for yuan
             'https': 'https://127.0.0.1:1087',
             },
-        'apiKey': '',
-        'secret': '',
+        'apiKey': 'pPTnTi4pwNpaFl3zY1Mta2TtJS2nlqOrUm8KYwfXScN',
+        'secret': 'nB9n2UEmjXhTsfWNYCpURqlO6TbFhztoq6qLgvHY2M2',
         'rateLimit': 10000,
         'enableRateLimit': True,
         'verbose': False
@@ -42,8 +43,8 @@ def bitfinexV2_instance():
             'http': 'http://127.0.0.1:1087',  # these proxies won't work for you, they are here for yuan
             'https': 'https://127.0.0.1:1087',
             },
-        'apiKey': '',
-        'secret': '',
+        'apiKey': 'pPTnTi4pwNpaFl3zY1Mta2TtJS2nlqOrUm8KYwfXScN',
+        'secret': 'nB9n2UEmjXhTsfWNYCpURqlO6TbFhztoq6qLgvHY2M2',
         'rateLimit': 10000,
         'enableRateLimit': True,
         'verbose': False

@@ -1,7 +1,3 @@
-'''
-布林线+%b指标
-通过%b用距离来衡量穿越上下线，0时即为简单布林
-'''
 
 from common import utils
 import numpy as np
@@ -9,10 +5,8 @@ import pandas as pd
 pd.set_option('expand_frame_repr', False)  # 当列太多时不换行
 pd.set_option('display.max_rows', 1000)
 
-
-# ===布林线策略
 '''
-通过判断布林上下轨，改成判断%b指标，从而多了一个参数th，控制穿过的阈值
+通过判断布林上下轨，改成判断%b指标，从而多了一个参数th，控制穿过的阈值，同时防止插针K线出现的信号
 '''
 def signal_bolling(df, para=[100, 2, 0, 0, 1.5]):
     """

@@ -9,7 +9,7 @@ def test_para_online():
     :return:
     '''
     para_now = [100, 3.25, 0.01, 0.0255, 0.9]
-    data = k_lines.__get_candle_data(my_exchange.bitfinexV2_instance(), 'ETH/USDT', '5m')
+    data = k_lines.__get_candle_data(my_exchange.bitfinexV2_instance(), 'ETH/USDT', '15m')
     data.rename(columns={'candle_begin_time_GMT8': 'candle_begin_time'}, inplace=True)
     # 计算交易信号
     df = bulin_K.signal_bolling(data, para_now)
