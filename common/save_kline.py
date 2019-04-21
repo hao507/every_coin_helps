@@ -22,8 +22,8 @@ xrp_df = pd.DataFrame()
 def get_last_2days_data(temp):
     global doTime
     #获取前两日的历史5min数据
-    data_tmp = temp[temp['candle_begin_time_GMT8'] < (doTime - pd.Timedelta(days=0))]
-    data_2day = data_tmp[data_tmp['candle_begin_time_GMT8'] >= (doTime-pd.Timedelta(days=2))]
+    data_tmp = temp[temp['candle_begin_time_GMT8'] < pd.Timestamp(doTime - pd.Timedelta(days=0))]
+    data_2day = data_tmp[data_tmp['candle_begin_time_GMT8'] >= pd.Timestamp(doTime-pd.Timedelta(days=2))]
     return data_2day
 
 def execTask():
@@ -43,7 +43,7 @@ def execTask():
     data_LTC = k_lines.__get_candle_data(my_exchange.bitfinexV2_instance(), 'LTC/USDT', '5m')
     data_XRP = k_lines.__get_candle_data(my_exchange.bitfinexV2_instance(), 'XRP/USDT', '5m')
     '''
-    print('任务执行完毕')
+    utils.logger.info('操作执行结束')
 
 def write_2_file_hdf5(kData,path='/result/default.h5'):
     '''
