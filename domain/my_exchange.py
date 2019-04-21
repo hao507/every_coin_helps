@@ -23,10 +23,10 @@ def okex_instance():
 # bitfinex无法查到当前的k线数据，但能查资产
 def bitfinex_instance():
     params = {
-        'proxies': {
-            'http': 'http://127.0.0.1:1087',  # these proxies won't work for you, they are here for yuan
-            'https': 'https://127.0.0.1:1087',
-            },
+        # 'proxies': {
+        #     'http': 'http://127.0.0.1:1087',  # these proxies won't work for you, they are here for yuan
+        #     'https': 'https://127.0.0.1:1087',
+        #     },
         'apiKey': 'pPTnTi4pwNpaFl3zY1Mta2TtJS2nlqOrUm8KYwfXScN',
         'secret': 'nB9n2UEmjXhTsfWNYCpURqlO6TbFhztoq6qLgvHY2M2',
         'rateLimit': 10000,
