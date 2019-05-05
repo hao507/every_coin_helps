@@ -101,7 +101,7 @@ def timerTask():
         utils.logger.info("定时器执行时间：%s" ,dt.now().strftime("%Y-%m-%d %H:%M:%S"))
     else:  # 任务执行过，判断时间是否过了三天。如果是就执行任务
         desTime = pd.datetime.today().date()
-        if desTime > doTime+ pd.Timedelta(days=3):
+        if desTime > doTime+ pd.Timedelta(days=3) or desTime.day==1 :
             execF = False  # 任务执行执行置值为
             doTime = desTime
 
