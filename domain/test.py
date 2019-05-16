@@ -1,7 +1,8 @@
 import threading
 from common.utils import send_mail
 import optunity
-
+from common import utils
+import pandas as pd
 
 def run_d():
     print('start')
@@ -13,6 +14,7 @@ if __name__== '__main__':
     # print('!')
     # run_d()
     # print("over")
+    all_data = pd.read_hdf('/Users/lensonyuan/gitLocal/every_coin_helps/result/data_EOS_2019_4.h5', key='data')
 
     optimal_rbf_pars, info, _ = optunity.maximize(lambda x, y: x * y,
                                                   num_evals=500,

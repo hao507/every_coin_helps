@@ -8,8 +8,12 @@ def test_para_online():
     调参后，在线测试短期收益
     :return:
     '''
-    para_now = [100, 3.25, 0.01, 0.0255, 0.9]
-    data = k_lines.__get_candle_data(my_exchange.bitfinexV2_instance(), 'ETH/USDT', '15m')
+    #'x': 360, 'y': 3.0, 'm': 0.01, 'n': 0.0, 'h': 1.028
+    #'x': 380, 'y': 3.0, 'm': 0.015, 'n': 0.02, 'h': 100
+    #101.1435778634197 {'x': 90, 'y': 4.0, 'm': 0.035, 'n': 0.115, 'h': 1.5359999999999987}XRP
+    para_now = [90, 4, 0.035, 0.115, 1.536]
+    data = k_lines.__get_candle_data(my_exchange.bitfinexV2_instance(), 'XRP/USDT', '15m')
+
     data.rename(columns={'candle_begin_time_GMT8': 'candle_begin_time'}, inplace=True)
     # 计算交易信号
     df = bulin_K.signal_bolling(data, para_now)

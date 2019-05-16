@@ -3,36 +3,44 @@ from backtest import evaluate
 from common import utils
 import numpy as np
 import warnings
-from hyperopt.pyll import scope
-import math
-from hyperopt import fmin, tpe, hp, Trials
+from multiprocessing import Pool, Manager #进程
+from multiprocessing.managers import Namespace
+from multiprocessing.dummy import Pool as ThreadPool#线程
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
 pd.set_option('expand_frame_repr', False)  # 当列太多时不换行
 pd.set_option('display.max_rows', 1000)
 
-from strategy import gmma
 from strategy import bulin_K
 
+
 # =====寻找最优参数
-def get_data(data_name='bitfinex_dataETHUSD.h5',rule_type = '15T'):
+def get_data(data_name='bitfinex_dataETHUSD.h5', rule_type='15T'):
     '''
     读取数据
     :return:
     '''
     # 导入数据
-    all_data = pd.read_hdf(utils.project_path()+'/data/'+data_name, key='data')
+    all_data = pd.read_hdf(utils.project_path() + '/data/' + data_name, key='data')
     # 转换数据周期
     all_data = evaluate.transfer_to_period_data(all_data, rule_type)
     # 选取时间段
-    all_data = all_data[all_data['candle_begin_time'] >= pd.to_datetime('2018-11-01')]
+    all_data = all_data[all_data['candle_begin_time'] >= pd.to_datetime('2019-01-01')]
     all_data.reset_index(inplace=True, drop=True)
     return all_data
-#拿取数据
-all_data = get_data(data_name='bitfinex_dataETHUSD.h5',rule_type = '15T')
 
 
-def dest_fuc(space):
+# 拿取数据
+all_data = get_data(data_name='bitfinex_dataXRPUSD.h5', rule_type='15T')
+
+manager = Manager()
+dic = manager.dict()
+dic['curve']= 0.0
+dic['space']= []
+
+
+
+def BulinParaOptimizer(space):
     '''
     寻参目标：简单参数寻找
     :param x:
@@ -41,45 +49,57 @@ def dest_fuc(space):
     :param n:
     :return:
     '''
+    global dic
     x, y, m, n, h = space['x'], space['y'], space['m'], space['n'], space['h']
-    x_ = math.floor(x)
-    para = [x_, y, m, n, h]
-    #para = [100, 3.25, 0.01, 0.0255,100]
+    para = [x, y, m, n, h]
+    # para = [100, 3.25, 0.01, 0.0255,100]
     df = bulin_K.signal_bolling(all_data.copy(), para)
     # 计算资金曲线
     df = evaluate.equity_curve_with_long_and_short(df, leverage_rate=3, c_rate=2.0 / 1000)
-    equity_curve =df.iloc[-1]['equity_curve']
-    return -equity_curve #求min,故要取反
+    equity_curve = df.iloc[-1]['equity_curve']
+    if equity_curve > dic['curve']:
+        dic['curve'] = equity_curve
+        dic['space'] = space
+        #print(dic['curve'],dic['space'])
 
-def para_optimizer(is_test=False):
-    '''
-    # x=[10, 500],
-      # y=[1, 30],
-      # m=[0.005,0.1],
-      # n=[0.001,0.1],
-      #f=[0.001, 1.5]
-    :param data:
-    :return:
-    '''
-
-
-    space = {
-        'x': 10+hp.randint('x', 350),
-        'y': hp.uniform('y', 1, 30),
-        'm': hp.uniform('m', 0, 0.3),
-        'n': hp.uniform('n', 0, 0.3),
-        'h': hp.uniform('h', 0.01, 2)
-    }
-    #trials = Trials()
-    #best = fmin(fn=dest_fuc, space=space, algo=tpe.suggest, max_evals=100,trials=trials)
-    best = fmin(fn=dest_fuc, space=space, algo=tpe.suggest, max_evals=10000)
-    print(best['x'], best['y'], best['m'], best['n'], best['h'])
-    # for trial in trials.trials[:2]:
-    #     print(trial)
+def soup(para):
+    process_pool = Pool(6)
+    process_pool.map_async(BulinParaOptimizer, para)
+    process_pool.close()
+    process_pool.join()
+    print('进程汇总：',dic['curve'], dic['space'])
 
 
-if __name__ == '__main__':
-    para_optimizer()
+if __name__=='__main__':
+    #test
+    # spac = {'x': 90, 'y': 4.0, 'm': 0.035, 'n': 0.115, 'h': 1.5359999999999987}
+    # BulinParaOptimizer(spac)
+    #寻x,y
+    s_xy = [{'x': x, 'y': y, 'm': 0, 'n': 0, 'h': 100} for x in np.arange(50, 500, 5) for y in np.arange(1, 30, 0.5)]
+    soup(s_xy)
+    # 寻m,n
+    x, y = dic['space']['x'], dic['space']['y']
+    s_xy = [{'x': x, 'y': y, 'm': m, 'n': n, 'h': 100} for m in np.arange(0, 0.3, 0.005) for n in np.arange(0, 0.3, 0.005)]
+    soup(s_xy)
+    m,n =dic['space']['m'], dic['space']['n']
+    #寻优h
+    s_xy = [{'x': x, 'y': y, 'm': m, 'n': n, 'h': h} for h in np.arange(0.01, 2, 0.001)]
+    soup(s_xy)
+
+    print(dic['curve'], dic['space'])
+    pass
+
+
+#并行计算
+# slice = 100
+# s_xy = [sd[slice*i:slice*(i+1)] for i in range(0, sd.__len__()//slice +1, 1)]
+
+# thread_pool =ThreadPool()
+# def thread_work(ss):
+#     thread_pool.map(BulinParaOptimizer, ss)
+
+
+
 
 
 '''
