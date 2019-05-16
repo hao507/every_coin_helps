@@ -9,16 +9,6 @@ from Xbitfinex import orders
 from domain import my_exchange
 from common.utils import logger
 
-
-def heartbeat():
-    print(time.strftime('%Y-%m-%d %H:%M:%S - heartbeat', time.localtime(time.time())))
-    timer = threading.Timer(60, heartbeat)
-    timer.start()
-
-
-timer = threading.Timer(60, heartbeat)
-timer.start()
-
 app = Flask(__name__, static_url_path="/static")
 
 

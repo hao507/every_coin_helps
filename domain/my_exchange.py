@@ -8,10 +8,10 @@ print('python_version:',platform.python_version())
 #生成自己的okex实例
 def okex_instance():
     params = {
-        # 'proxies': {
-        #     'http': 'http://127.0.0.1:1087',  # these proxies won't work for you, they are here for yuan
-        #     'https': 'https://127.0.0.1:1087',
-        #     },
+        'proxies': {
+            'http': 'http://127.0.0.1:1087',  # these proxies won't work for you, they are here for yuan
+            'https': 'https://127.0.0.1:1087',
+            },
         'apiKey': '5bc22ba0-d935-4770-970f-a39270bb9a64',
         'secret': 'CAE57763C9A95E34E1841DE6BD900ED1',
         'verbose': False
@@ -23,10 +23,10 @@ def okex_instance():
 # bitfinex无法查到当前的k线数据，但能查资产
 def bitfinex_instance():
     params = {
-        # 'proxies': {
-        #     'http': 'http://127.0.0.1:1087',  # these proxies won't work for you, they are here for yuan
-        #     'https': 'https://127.0.0.1:1087',
-        #     },
+        'proxies': {
+            'http': 'http://127.0.0.1:1087',  # these proxies won't work for you, they are here for yuan
+            'https': 'https://127.0.0.1:1087',
+            },
         'apiKey': 'pPTnTi4pwNpaFl3zY1Mta2TtJS2nlqOrUm8KYwfXScN',
         'secret': 'nB9n2UEmjXhTsfWNYCpURqlO6TbFhztoq6qLgvHY2M2',
         'rateLimit': 10000,
@@ -39,10 +39,10 @@ def bitfinex_instance():
 #bitfinex2在获取资产时，会缺少数据，但可以查k线
 def bitfinexV2_instance():
     params = {
-        # 'proxies': {
-        #     'http': 'http://127.0.0.1:1087',  # these proxies won't work for you, they are here for yuan
-        #     'https': 'https://127.0.0.1:1087',
-        #     },
+        'proxies': {
+            'http': 'http://127.0.0.1:1087',  # these proxies won't work for you, they are here for yuan
+            'https': 'https://127.0.0.1:1087',
+            },
         'apiKey': 'pPTnTi4pwNpaFl3zY1Mta2TtJS2nlqOrUm8KYwfXScN',
         'secret': 'nB9n2UEmjXhTsfWNYCpURqlO6TbFhztoq6qLgvHY2M2',
         'rateLimit': 10000,
