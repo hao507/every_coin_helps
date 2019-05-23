@@ -126,9 +126,9 @@ def auto_trade_leverage(exchange_v2, symbol, signal,signal_before, para = list()
             # =====空仓情况下：下多单
             if signal == 1 and signal_before == 0 and trade_coin not in position_list:# in语法 相当于Java里的contains
                 if base_coin == 'USDT':
-                    balance_total = float(exchange_v1.fetch_balance({'type': 'trading'})['total']['USDT'])
+                    balance_total = float(exchange_v1.fetch_balance({'type': 'trading'})['free']['USDT'])
                 if base_coin == 'BTC':
-                    balance_total = float(exchange_v1.fetch_balance({'type': 'trading'})['total']['BTC'])
+                    balance_total = float(exchange_v1.fetch_balance({'type': 'trading'})['free']['BTC'])
 
                 # 获取最新的买入价格
                 price = exchange_v1.fetch_ticker(symbol)['ask']  # 获取卖一价格
@@ -145,9 +145,9 @@ def auto_trade_leverage(exchange_v2, symbol, signal,signal_before, para = list()
             # =====空仓情况下：下空单
             if signal == -1 and signal_before == 0 and trade_coin not in position_list:
                 if base_coin == 'USDT':
-                    balance_total = float(exchange_v1.fetch_balance({'type': 'trading'})['total']['USDT'])
+                    balance_total = float(exchange_v1.fetch_balance({'type': 'trading'})['free']['USDT'])
                 if base_coin == 'BTC':
-                    balance_total = float(exchange_v1.fetch_balance({'type': 'trading'})['total']['BTC'])
+                    balance_total = float(exchange_v1.fetch_balance({'type': 'trading'})['free']['BTC'])
 
                 # 获取最新的卖出价格
                 price = exchange_v1.fetch_ticker(symbol)['bid']  # 获取买一价格
@@ -205,9 +205,9 @@ def auto_trade_leverage(exchange_v2, symbol, signal,signal_before, para = list()
                 # 然后下多单
                 price = exchange_v1.fetch_ticker(symbol)['ask']  # 获取卖一价格
                 if base_coin == 'USDT':
-                    balance_total = float(exchange_v1.fetch_balance({'type': 'trading'})['total']['USDT'])
+                    balance_total = float(exchange_v1.fetch_balance({'type': 'trading'})['free']['USDT'])
                 if base_coin == 'BTC':
-                    balance_total = float(exchange_v1.fetch_balance({'type': 'trading'})['total']['BTC'])
+                    balance_total = float(exchange_v1.fetch_balance({'type': 'trading'})['free']['BTC'])
 
                 buy_amount = str(balance_total * position_pct * leverage / price)
 
@@ -231,9 +231,9 @@ def auto_trade_leverage(exchange_v2, symbol, signal,signal_before, para = list()
 
                 # 然后下空单
                 if base_coin == 'USDT':
-                    balance_total = float(exchange_v1.fetch_balance({'type': 'trading'})['total']['USDT'])
+                    balance_total = float(exchange_v1.fetch_balance({'type': 'trading'})['free']['USDT'])
                 if base_coin == 'BTC':
-                    balance_total = float(exchange_v1.fetch_balance({'type': 'trading'})['total']['BTC'])
+                    balance_total = float(exchange_v1.fetch_balance({'type': 'trading'})['free']['BTC'])
 
                 price = exchange_v1.fetch_ticker(symbol)['bid']  # 获取买一价格
                 sell_amount = str(balance_total * position_pct * leverage / price)
