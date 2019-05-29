@@ -25,7 +25,7 @@ def debug_hander(log_name):
     ch.setLevel(logging.DEBUG)#服务器运行时改成info
 
     # 定义handler的输出格式
-    formatter = logging.Formatter('%(asctime)-8s %(filename)-8s %(levelname)-8s %(name)-12s [line:%(lineno)d]  %(message)s')
+    formatter = logging.Formatter('%(asctime)-8s %(filename)-8s %(levelname)-8s %(name)-8s [%(processName)s-%(process)d] [line:%(lineno)d]  %(message)s')
     fh.setFormatter(formatter)
     ch.setFormatter(formatter)
 
