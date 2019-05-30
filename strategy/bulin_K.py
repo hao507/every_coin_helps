@@ -1,6 +1,7 @@
 
 from common import utils
 import numpy as np
+import math
 import pandas as pd
 pd.set_option('expand_frame_repr', False)  # 当列太多时不换行
 pd.set_option('display.max_rows', 1000)
@@ -23,7 +24,7 @@ def signal_bolling(df, para=[100, 2, 0, 0, 1.5]):
     """
 
     # ===计算指标
-    n = para[0]
+    n = math.floor(para[0])
     m = para[1]
     th= para[2]#0时即为简单布林，为穿越上下线
     th2=para[3]#0时即为穿越中线
