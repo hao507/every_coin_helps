@@ -93,9 +93,9 @@ def play_order(exc='下单'):
         return '下单指令不完整！'
     #提取指令
     try:
-        # exc='下单[平,ETH,0.7p,2倍]'
-        ma = re.search('^下单\[((平多)|空|多),\s*([A-Z]{2,9}),\s*((0\.){0,1}[0-9]{1,2})P,\s*([0-3](\.[0-9]){0,1})L\s*\]$', exc)
-        para1, para2, para3, para4 = ma.group(1), ma.group(3), float(ma.group(4)), float(ma.group(6))
+        #exc = '下单[平多,ETH,0.7P,2.1L]'
+        ma = re.search('^下单\[((平多)|(平空)|空|多),\s*([A-Z]{2,9}),\s*((0\.){0,1}[0-9]{1,2})P,\s*([0-3](\.[0-9]){0,1})L\s*\]$', exc)
+        para1, para2, para3, para4 = ma.group(1), ma.group(4), float(ma.group(5)), float(ma.group(7))
     except Exception as e:
         print(e)
         return '正则失败，请检查下单指令是否有误！'
