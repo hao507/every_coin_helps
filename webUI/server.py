@@ -3,6 +3,7 @@ from flask import Flask, render_template, request
 from flask import jsonify
 
 import re
+from collections import deque
 from multiprocessing import Process
 
 from Xbitfinex import orders
@@ -38,7 +39,7 @@ def index():
 # ______________________执行主函数入口___________________________________________
 
 def web_call_service(input_message):
-    ans='可执行"查询持仓、下单[平多/平空/空/多,ETH,0.5P,3L]、任务[ETH,0.5P,3L,[90,3.2,0.005,0.015,1.779]]、任务终止-ETH、查询所有任务、help"指令'
+    ans='可执行"查询持仓、下单[平多/平空/空/多,ETH,0.5P,3L]、任务[ETH,0.5P,3L,[90,3.2,0.005,0.015,1.779]]、任务终止-ETH、查询任务、查询历史任务、help"指令'
 
     if input_message=='查询持仓':
         exchange= my_exchange.bitfinexV2_instance()
@@ -47,8 +48,10 @@ def web_call_service(input_message):
         ans = play_order(input_message)
     elif input_message.startswith('任务'):
         ans = exec_tasks(input_message)
-    elif input_message=='查询所有任务':
+    elif input_message=='查询任务':
         ans = get_all_tasks()
+    elif input_message=='查询历史任务':
+        ans = get_tasks_history5()
     return ans
 
 
@@ -116,9 +119,10 @@ def play_order(exc='下单'):
     return '已执行任务！若符合持仓条件，执行结果将以邮件下发，请注意查收！'
 # __________________________监测信号操作_______________________________________
 sub_jobs=[]#进程对象
+history_task = deque(maxlen=5) # 历史检测任务的参数
 
 def exec_tasks(exc='任务'):
-    global sub_jobs
+    global sub_jobs, history_task
     def is_contains(sym='ETH'):
         for name, per_task, note in sub_jobs:
             if name == sym:
@@ -171,8 +175,9 @@ def exec_tasks(exc='任务'):
     sub_task.daemon = True#布尔值，指示进程是否是后台进程。当创建它的进程终止时，后台进程会自动终止。并且，后台进程无法创建自己的新进程。
     sub_jobs.append((para1, sub_task, exc))#记录
     sub_task.start()
+    history_task.append(exc)
     return '任务执行成功！'
-# _________________________________________________________________
+# _________________________查询正在执行的任务________________________________________
 def get_all_tasks():
     rs=''
     for name, per_task, note in sub_jobs:
@@ -180,6 +185,17 @@ def get_all_tasks():
     if rs=='':
         rs='暂无正在执行的任务！'
     return rs
+
+# _________________________查询历史任务最近5条________________________________________
+def get_tasks_history5():
+    rs=''
+    for name in history_task:
+        rs += name+'</br>'
+    if rs=='':
+        rs='暂无历史任务记录！'
+    return rs
+
+
 # 启动APP
 if (__name__ == "__main__"):
     #web_call_service('')
