@@ -134,7 +134,7 @@ def exec_tasks(exc='任务'):
     elif exc.startswith('任务终止-'):
         task_end=exc.split('-')
         if len(task_end)==2:
-            #结束任务，当子进程执行完毕后，会产生一个僵尸进程，其会被join函数回收，或者再有一条进程开启，start函数也会回收僵尸进程，所以不一定需要写join函数。
+            # 结束任务，当子进程执行完毕后，会产生一个僵尸进程，其会被join函数回收，或者再有一条进程开启，start函数也会回收僵尸进程，所以不一定需要写join函数。
             end_t =None
             i = 0
             for name, per_task, _ in sub_jobs:
@@ -155,7 +155,7 @@ def exec_tasks(exc='任务'):
             pass
         else:
             return '任务结束指令错误！'
-    #主要监测信号任务
+    # 主要监测信号任务
     # 提取指令
     try:
         # exc='任务[ETH,0.5P,3L,[90,3.2,0.005,0.015,1.779]]'

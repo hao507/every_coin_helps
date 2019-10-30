@@ -14,18 +14,28 @@ class BollingAdvanced:
     2. 如果插针太严重，肯定会反弹，故反弹选择穿越上轨却做空的思路
     3. 根据同参数每日的情况，来确定开口大小和方向，由此确定开单倍数
     """
-    def __init__(self, para=[91, 2.9, 0, 0.055, 1.984, 0.3]):
+    def __init__(self):
         """
-               布林线中轨：n天收盘价的移动平均线
-               布林线上轨：n天收盘价的移动平均线 + m * n天收盘价的标准差
-               布林线下轨：n天收盘价的移动平均线 - m * n天收盘价的标准差
-               %b值 = (收盘价−布林带下轨值) ÷ (布林带上轨值−布林带下轨值)
-               带宽指标值 = (布林带上轨值−布林带下轨值) ÷布林带中轨值
+                       布林线中轨：n天收盘价的移动平均线
+                       布林线上轨：n天收盘价的移动平均线 + m * n天收盘价的标准差
+                       布林线下轨：n天收盘价的移动平均线 - m * n天收盘价的标准差
+                       %b值 = (收盘价−布林带下轨值) ÷ (布林带上轨值−布林带下轨值)
+                       带宽指标值 = (布林带上轨值−布林带下轨值) ÷布林带中轨值
 
-               :param para:  参数，[n, m, th,th2], n天均线；m倍自由差；th为阈值，为0时，为标准简单布林; th2为距离中线的阈值；
-                           th3为#突变穿越上下轨时，该时刻的收盘价与开盘价差占该线的比例值，设置成100以上可以取消该条件.该参数主要防止插针导致的购买信号
-               :return:
-               """
+                       :param para:  参数，[n, m, th,th2], n天均线；m倍自由差；th为阈值，为0时，为标准简单布林; th2为距离中线的阈值；
+                                   th3为#突变穿越上下轨时，该时刻的收盘价与开盘价差占该线的比例值，设置成100以上可以取消该条件.该参数主要防止插针导致的购买信号
+                       :return:
+                       """
+        # ===计算指标
+        self.n = 0
+        self.m = 0
+        self.th = 0  # 0时即为简单布林，为穿越上下线
+        self.th2 = 0  # 0时即为穿越中线
+        self.th3 = 0  # 突变穿越上下轨时，该时刻的收盘价与开盘价差占该线的比例值
+        self.th4 = 0  # 止损跌幅阈值
+        self.df = None
+
+    def set_para(self, para):
         # ===计算指标
         self.n = math.floor(para[0])
         self.m = para[1]
@@ -35,8 +45,8 @@ class BollingAdvanced:
         self.th4 = para[5]  # 止损跌幅阈值
         self.df = None
 
-    def signal_bolling(self, df_source):
-
+    def signal_bolling(self, df_source, para=[91, 2.9, 0, 0.055, 1.984, 0.3]):
+        self.set_para(para)
         self.df = df_source.copy(deep=True) # 使用副本进行操作
         # 计算均线
         self.df['median'] = self.df['close'].rolling(self.n, min_periods=1).mean() #n日的均值
@@ -221,6 +231,6 @@ if __name__=='__main__':
     para_now = [91, 2.9, 0, 0.055, 1.0, 0.3]
     data = pd.read_excel(utils.project_path()+'/excel_output.xls', sheet_name='src')
     # 计算交易信号
-    ins = BollingAdvanced(para=para_now)
-    df = ins.signal_bolling(data)
+    ins = BollingAdvanced()
+    df = ins.signal_bolling(data,para=para_now)
     pass
