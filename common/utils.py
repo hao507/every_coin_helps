@@ -10,6 +10,7 @@ from email.header import Header
 from email.mime.text import MIMEText
 
 from datetime import datetime, timedelta
+from logging.handlers import TimedRotatingFileHandler
 
 
 def debug_hander(log_name):
@@ -17,7 +18,7 @@ def debug_hander(log_name):
     logger.setLevel(logging.DEBUG)
     # 创建一个handler，用于写入日志文件
     name = os.path.abspath(os.path.join(os.path.dirname(__file__), "../loginfo")) + '/' + time.strftime("%Y%m%d") + '.log'
-    fh = logging.FileHandler(filename=name, mode='w')
+    fh= TimedRotatingFileHandler(filename=name, when='D', encoding="utf-8")
     fh.setLevel(logging.DEBUG)
 
     # 再创建一个handler，用于输出到控制台

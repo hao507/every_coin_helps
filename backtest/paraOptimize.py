@@ -25,8 +25,8 @@ def get_data(data_name='bitfinex_dataETHUSD.h5', rule_type='15T'):
     # 转换数据周期
     all_data = evaluate.transfer_to_period_data(all_data, rule_type)
     # 选取时间段
-    all_data = all_data[all_data['candle_begin_time'] >= pd.to_datetime('2017-01-01')]
-    all_data = all_data[all_data['candle_begin_time'] < pd.to_datetime('2019-04-01')]
+    all_data = all_data[all_data['candle_begin_time'] >= pd.to_datetime('2017-12-01')]
+    all_data = all_data[all_data['candle_begin_time'] < pd.to_datetime('2019-2-01')]
     all_data.reset_index(inplace=True, drop=True)
     return all_data
 
@@ -38,7 +38,6 @@ manager = Manager()
 dic = manager.dict()
 dic['curve']= 0.0
 dic['space']= []
-
 
 
 def BulinParaOptimizer(space):
@@ -63,31 +62,31 @@ def BulinParaOptimizer(space):
         dic['space'] = space
         #print(dic['curve'],dic['space'])
 
+
 def soup(para):
     process_pool = Pool()
     process_pool.map_async(BulinParaOptimizer, para)
     process_pool.close()
     process_pool.join()
-    print('进程汇总：',dic['curve'], dic['space'])
+    print('进程汇总：', dic['curve'], dic['space'])
 
 
 #224.26199402036414 {'x': 365, 'y': 3.5, 'm': 0.13, 'n': 0.14, 'h': 1.3549999999999989}EOS
 #36952.86186159719 {'x': 90, 'y': 3.200000000000002, 'm': 0.005, 'n': 0.015, 'h': 1.7789999999999986}ETH
+#最优： 19.291647830587838 {'x': 148, 'y': 4.800000000000003, 'm': 0.0, 'n': 0.115, 'h': 1.101999999999999}BTC
 if __name__=='__main__':
     #test
     # spac = {'x': 90, 'y': 4.0, 'm': 0.035, 'n': 0.115, 'h': 1.5359999999999987}
     # BulinParaOptimizer(spac)
 
     #寻x,y
-    s_xy = [{'x': x, 'y': y, 'm': 0, 'n': 0, 'h': 100} for x in np.arange(20, 150, 2) for y in np.arange(1, 5, 0.1)]
+    s_xy = [{'x': x, 'y': y, 'm': 0, 'n': 0, 'h': 100} for x in np.arange(20, 150, 1) for y in np.arange(1, 7, 0.1)]
     soup(s_xy)
     # 寻m,n
     x, y = dic['space']['x'], dic['space']['y']
-    #exit('0000')
-    #x, y = 100, 3.25
     s_xy = [{'x': x, 'y': y, 'm': m, 'n': n, 'h': 100} for m in np.arange(0, 0.3, 0.005) for n in np.arange(0, 0.3, 0.005)]
     soup(s_xy)
-    m,n =dic['space']['m'], dic['space']['n']
+    m, n =dic['space']['m'], dic['space']['n']
     #寻优h
     s_xy = [{'x': x, 'y': y, 'm': m, 'n': n, 'h': h} for h in np.arange(0.01, 2, 0.001)]
     soup(s_xy)
