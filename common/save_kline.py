@@ -29,7 +29,7 @@ def get_last_2days_data(temp):
 def execTask():
     global eos_df, eth_df, btc_df, ltc_df, xrp_df
     # 具体任务执行内容
-    data_EOS = k_lines.__get_candle_data(my_exchange.bitfinexV2_instance(), 'EOS/USDT', '5m')
+    data_EOS = k_lines.get_candle_data(my_exchange.bitfinexV2_instance(), 'EOS/USDT', '5m')
     eos_d = get_last_2days_data(data_EOS)
     eos_df = data_merge_2_file(eos_d,eos_df,path='/result/data_EOS.h5')
     '''

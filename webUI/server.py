@@ -39,7 +39,7 @@ def index():
 # ______________________执行主函数入口___________________________________________
 
 def web_call_service(input_message):
-    ans='可执行"查询持仓、下单[平多/平空/空/多,ETH,0.5P,3L]、任务[ETH,0.5P,3L,[90,3.2,0.005,0.015,1.779]]、任务终止-ETH、查询任务、查询历史任务、help"指令'
+    ans='可执行"查询持仓、下单[平多/平空/空/多,ETH,0.5P,3L]、任务[ETH,0.5P,0L,[90,3.2,0.005,0.015,1.779, 0.2]]、任务终止-ETH、查询任务、查询历史任务、help"指令'
 
     if input_message=='查询持仓':
         exchange= my_exchange.bitfinexV2_instance()
@@ -91,6 +91,8 @@ def get_pos_info(exchange):
     return note
 
 # __________________________下单操作_______________________________________
+
+
 def play_order(exc='下单'):
     if exc=='下单':
         return '下单指令不完整！'
@@ -172,12 +174,14 @@ def exec_tasks(exc='任务'):
     if check!=-1:
         return '已有同名任务正在执行：'+check
     sub_task = Process(target=start_bitfinex_task, args=(para1, para2, para3, strtegy_para), name=para1)
-    sub_task.daemon = True#布尔值，指示进程是否是后台进程。当创建它的进程终止时，后台进程会自动终止。并且，后台进程无法创建自己的新进程。
-    sub_jobs.append((para1, sub_task, exc))#记录
+    sub_task.daemon = True  # 布尔值，指示进程是否是后台进程。当创建它的进程终止时，后台进程会自动终止。并且，后台进程无法创建自己的新进程。
+    sub_jobs.append((para1, sub_task, exc))  # 记录
     sub_task.start()
     history_task.append(exc)
     return '任务执行成功！'
 # _________________________查询正在执行的任务________________________________________
+
+
 def get_all_tasks():
     rs=''
     for name, per_task, note in sub_jobs:
@@ -187,6 +191,8 @@ def get_all_tasks():
     return rs
 
 # _________________________查询历史任务最近5条________________________________________
+
+
 def get_tasks_history5():
     rs=''
     for name in history_task:

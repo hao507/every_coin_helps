@@ -77,7 +77,7 @@ def __get_position(exchange):
 
 # bitfinex合约下单函数
 def auto_trade_leverage(exchange_v2, symbol, signal,signal_before, para = list()):
-    leverage = para[0]  # 杠杆倍数，最高3.3倍
+    leverage = para[0] # 杠杆倍数，最高3.3倍
     position_pct = para[1]  # 持仓比重
     exchange_v1 = para[2] #操作资产的exchange
     base_coin = symbol.split('/')[-1]

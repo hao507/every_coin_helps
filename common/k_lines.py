@@ -7,14 +7,15 @@ from common.utils import logger
 
 pd.set_option('display.max_rows', 1000)
 
-'''
-# 直接获取k线数据, 私有方法
-'''
-def __get_candle_data(exchange, symbol, time_interval='1m', is_contract =False):
+
+def get_candle_data(exchange, symbol, time_interval='1m', is_contract =False):
+    """
+    # 直接获取k线数据, 私有方法
+    """
     para = dict()
     if is_contract and exchange.name == 'Okex':
         para = {'contract_type': 'quarter'}
-    #抓取k线
+    # 抓取k线
     loop_count = 0
     while True:
         try:
@@ -53,7 +54,7 @@ def update_kline(exchange,symbol,interval_time,next_run_time,detect_time=0):
     while i<6:
         i+=1
         logger.debug('next data time(%s): %s',str(i),next_run_time)
-        k_data = __get_candle_data(exchange, symbol,interval_time,False)
+        k_data = get_candle_data(exchange, symbol,interval_time,False)
 
         #logger.debug('获取的kline最后一行(%s)：\n%s',datetime.now().strftime("%Y-%m-%d %H:%M:%S"),k_data.tail(1))
         # 判断是否包含最新的数据

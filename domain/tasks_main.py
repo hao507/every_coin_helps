@@ -8,7 +8,7 @@ from common import utils
 
 from common.utils import logger
 from common import k_lines
-
+import copy
 '''
 任务启动中心
 '''
@@ -74,19 +74,46 @@ class task_making:
             logger.info('当前交易信号为:%s', signal)
             logger.info('前一刻理论持仓为:%s', signal_before)
             #调试代码
-            # signal=1
-            # signal_before=0
+            # signal = 1
+            # signal_before = 0
             if not pd.isna(signal):
-                #具体参数，需要结合对应函数给相应参数
-                self.trading_operation(self.exchange,self.symbol,signal,signal_before,self.operation_para)
+                # self.operation_para =>【order_para=[multi, percent, my_exchange.bitfinex_instance()]】
+                # 根据1日线决定倍率
+                k_data_1day = k_lines.get_candle_data(self.exchange, self.symbol, '1d')
+                diff_percent = 0 # 当前与均值的差异
+                if k_data_1day is None:
+                    ratio = 1
+                else:
+                    # 计算30日均线
+                    k_data_1day['median'] = k_data_1day['close'].rolling(30, min_periods=1).mean()  # n日的均值
+                    close_cur = df_signal.iloc[-1]['close']  # 最新数据的那个信号
+                    mean_cur = k_data_1day.iloc[-1]['median']
+                    mean_max = max(list(map(lambda x: abs(x), k_data_1day['median'].values.tolist())))
+                    diff_percent = (close_cur - mean_cur)/mean_cur  # 正负都有可能
+                    max_diff_percent = (mean_max - mean_cur)/mean_cur  # 为正数
+                    # 分成5个等级：1，1.5，2，2.5，3
+                    mean_percent = max_diff_percent/5
+                    diff_percent_abs = abs(diff_percent)
+                    if 0 <= diff_percent_abs < mean_percent:
+                        ratio = 1
+                    elif mean_percent <= diff_percent_abs < mean_percent*2:
+                        ratio = 1.5
+                    elif mean_percent*2 <= diff_percent_abs < mean_percent*3:
+                        ratio = 2
+                    elif mean_percent*3 <= diff_percent_abs < mean_percent*4:
+                        ratio = 2.5
+                    elif mean_percent*4 <= diff_percent_abs:
+                        ratio = 3
+                    else:
+                        ratio = 1
+                operation_para_modify = copy.copy(self.operation_para)  # 操作副本
+                # 0 表示自动。 均值上方且做多信号； 均值下方且做空信号；
+                if self.operation_para[0] == 0 and ((diff_percent > 0 and signal == 1) or (diff_percent < 0 and signal == -1)):
+                    operation_para_modify[0] = ratio
+                else:
+                    operation_para_modify[0] = 1
+
+                    logger.info('%d倍持仓！')
+                # 具体参数，需要结合对应函数给相应参数
+                self.trading_operation(self.exchange, self.symbol, signal, signal_before, operation_para_modify)
             logger.debug('----------group line-------------')
-#
-#
-# if __name__== '__main__':
-#     task_making(
-#                 my_exchange.bitfinexV2_instance(),
-#                 bulin.signal_bolling,strtegy_para=[370, 3.5],
-#                 func_auto_trade=orders.auto_trade_leverage, order_para=[1.5, 0.1, my_exchange.bitfinex_instance()],
-#                 symbol ='BTC/USDT',
-#                 interval_time = '5m'
-#                 )
