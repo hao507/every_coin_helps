@@ -27,22 +27,22 @@ class BollingAdvanced:
                        :return:
                        """
         # ===计算指标
-        self.n = 0
-        self.m = 0
-        self.th = 0  # 0时即为简单布林，为穿越上下线
-        self.th2 = 0  # 0时即为穿越中线
-        self.th3 = 0  # 突变穿越上下轨时，该时刻的收盘价与开盘价差占该线的比例值
+        self.n = 0  # n天移动均线
+        self.m = 0  # m倍自由差
+        self.th = 0  # 穿越上下线的偏差控制；0为下线，1为上线
+        self.th2 = 0  # 中线的偏差控制；0时即为穿越中线
+        self.th3 = 0  # 突变穿越上下轨时，该时刻的柱线和影线的最大差占该线的比例值
         self.th4 = 0  # 止损跌幅阈值
-        self.df = None
+        self.df = None # 处理数据源
 
     def set_para(self, para):
         # ===计算指标
         self.n = math.floor(para[0])
         self.m = para[1]
-        self.th = para[2]  # 0时即为简单布林，为穿越上下线
-        self.th2 = para[3]  # 0时即为穿越中线
-        self.th3 = para[4]  # 突变穿越上下轨时，该时刻的收盘价与开盘价差占该线的比例值
-        self.th4 = para[5]  # 止损跌幅阈值
+        self.th = para[2]
+        self.th2 = para[3]
+        self.th3 = para[4]
+        self.th4 = para[5]
         self.df = None
 
     def signal_bolling(self, df_source, para=[91, 2.9, 0, 0.055, 1.984, 0.3]):
@@ -57,7 +57,7 @@ class BollingAdvanced:
         self.df['lower'] = self.df['median'] - self.m * self.df['std']
 
         # 计算带宽%b
-        self.df['bbPb'] = (self.df['close']- self.df['lower'])/(self.df['upper']-self.df['lower'])
+        self.df['bbPb'] = (self.df['close']- self.df['lower'])/(self.df['upper']-self.df['lower'])  # 0.5为中线,1为上轨，0为下轨
 
         # 计算开仓位置
         self.judge_buy(df_buy=self.df)
@@ -106,6 +106,8 @@ class BollingAdvanced:
         # self.df.to_excel(utils.project_path() + '/excel_output03.xls', sheet_name='biu02')
 
         self.df.loc[self.df['signal_source'] == 0, 'signal_source'] = np.NaN
+        # self.df.to_excel(utils.project_path() + '/excel_output05.xls', sheet_name='biu')
+
         self.df.drop(['median', 'std', 'upper', 'lower', 'bbPb'], axis=1, inplace=True)
 
         self.df.loc[(self.df['signal_source'] > 0) & (self.df['signal_source'] < 10), 'signal'] = 1
@@ -123,22 +125,24 @@ class BollingAdvanced:
         # df_buy = df_in.copy(deep=True) # 使用副本进行操作
         df_buy['signal_buy'] = 0
         # ===找出做多信号
-        # k线由下而上穿越（中线+偏移）; 慢穿越
+        # k线由下而上穿越（上线-偏移）; 慢穿越
         condition1 = df_buy['bbPb'] > (1 - self.th)  # 当前K线的收盘价 > %b线的0.6,  0.5为中线,1为上轨，0为下轨
         condition2 = df_buy['bbPb'].shift(1) <= (1 - self.th)  # 前一刻K线的收盘价 <= （中线+偏移）
-        condition3 = ((df_buy['close'] - df_buy['open']) / (df_buy['upper'] - df_buy['median'])) < self.th3  # 穿越必须是慢动作，而不能突变太快
+        condition3 = ((df_buy['high'] - df_buy['open']) / (df_buy['upper'] - df_buy['median'])) < self.th3  # 穿越必须是慢动作，而不能突变太快
         df_buy.loc[condition1 & condition2 & condition3, 'signal_buy'] = 1  # 将产生做多信号的那根K线的signal设置为1，1代表做多
 
-        # ***** k线由下而上穿越（中线+偏移）; 快穿越 反向做空*****
+        # ***** k线由下而上穿越（上线+偏移）; 快穿越 反向做空*****
         df_buy.loc[condition1 & condition2 & (~condition3), 'signal_buy'] = -2  # 将产生做多信号的那根K线的signal设置为-2，-2代表做空2类
 
         # 找出做空信号
         condition1 = df_buy['bbPb'] < (0 + self.th)
         condition2 = df_buy['bbPb'].shift(1) >= (0 + self.th)
-        condition3 = ((df_buy['open'] - df_buy['close']) / (df_buy['median'] - df_buy['lower'])) < self.th3
+        condition3 = ((df_buy['open'] - df_buy['low']) / (df_buy['upper'] - df_buy['median'])) < self.th3
         df_buy.loc[condition1 & condition2 & condition3, 'signal_buy'] = -1  # 将产生做空信号的那根K线的signal设置为-1，-1代表做空
-        # ***** k线由下而上穿越（中线+偏移）; 快穿越 反向做空*****
-        df_buy.loc[condition1 & condition2 & (~condition3), 'signal_buy'] = 2  # 做多2类
+        # ***** k线由上而下穿越（下线+偏移）; 快穿越 反向做多*****
+        condition3 = ((df_buy['open'] - df_buy['low']) / (df_buy['upper'] - df_buy['median'])) >= self.th3
+        df_buy.loc[(condition1 & condition2 & (~condition3)), 'signal_buy'] = 2  # 做多2类
+        pass
         # df_buy.to_excel(utils.project_path()+'/excel_output.xls', sheet_name='biubiu')# 保存分析
 
     def judge_sell(self, df_sell):
@@ -228,7 +232,7 @@ class BollingAdvanced:
 
 
 if __name__=='__main__':
-    para_now = [91, 2.9, 0, 0.055, 1.0, 0.3]
+    para_now = [91, 2.9, 0, 0.055, 0.8, 0.3]
     data = pd.read_excel(utils.project_path()+'/excel_output.xls', sheet_name='src')
     # 计算交易信号
     ins = BollingAdvanced()
