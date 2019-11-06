@@ -103,7 +103,6 @@ class BollingAdvanced:
                     buy_min = min(buy_s.index.values.tolist())
                     self.df.loc[(buy_min < self.df['signal_source'].index) & (self.df['signal_source'].index < it), 'signal_source'] = 0
             pass
-        # self.df.to_excel(utils.project_path() + '/excel_output03.xls', sheet_name='biu02')
 
         self.df.loc[self.df['signal_source'] == 0, 'signal_source'] = np.NaN
         # self.df.to_excel(utils.project_path() + '/excel_output05.xls', sheet_name='biu')
@@ -140,7 +139,6 @@ class BollingAdvanced:
         condition3 = ((df_buy['open'] - df_buy['low']) / (df_buy['upper'] - df_buy['median'])) < self.th3
         df_buy.loc[condition1 & condition2 & condition3, 'signal_buy'] = -1  # 将产生做空信号的那根K线的signal设置为-1，-1代表做空
         # ***** k线由上而下穿越（下线+偏移）; 快穿越 反向做多*****
-        condition3 = ((df_buy['open'] - df_buy['low']) / (df_buy['upper'] - df_buy['median'])) >= self.th3
         df_buy.loc[(condition1 & condition2 & (~condition3)), 'signal_buy'] = 2  # 做多2类
         pass
         # df_buy.to_excel(utils.project_path()+'/excel_output.xls', sheet_name='biubiu')# 保存分析
