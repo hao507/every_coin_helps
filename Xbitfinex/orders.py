@@ -16,30 +16,29 @@ def place_order_bitfinex(exchange, order_type, buy_or_sell, symbol, price, amoun
     :param buy_or_sell: buy, sell
     :param symbol: 买卖品种
     :param price: 当market订单的时候，price无效
-    :param amount: 买卖量
+    :param amount: float 买卖量
     :return:
     """
-    logger.info('下单 order_type： %s, buy_or_sell： %s, symbol： %s, price： %s, amount： %s', order_type, buy_or_sell, symbol, price, amount)
+    logger.info('下单 order_type： %s, buy_or_sell： %s, symbol： %s, price： %s, amount： %s', order_type, buy_or_sell, symbol, price, str(amount))
 
-    content_txt = '执行时间：' + datetime.now().strftime("%Y-%m-%d %H:%M:%S")+'\n持仓情况(损益，损益百分比)：'+comment+'\n 执行参数（价格，数量）：'+str(price)+'，'+str(amount)
+    content_txt = '执行时间：' + datetime.now().strftime("%Y-%m-%d %H:%M:%S")+'\n持仓情况(损益，损益百分比)：'+comment+'\n 执行参数（价格，数量）：'+str(round(price, 4))+'，'+str(round(amount,3))
     logger.info('邮件正文：%s', content_txt)
     threading.Thread(target=send_mail, args=(buy_or_sell+' '+symbol, content_txt)).start()
 
     # 记录数据到sqlite
     record_type = str(symbol) # ETH
     trade_signal = record['signal'] #'做空/做多/平仓'
-    trade_multiple = record['multiple'] # 倍数
-    trade_amount = str(amount) # 量
-    trade_profit=record['profit']  # 损益
-    trade_profit_percent=record['profit_percent'] # 损益比
-    account = record['account'] # 账户余额
+    trade_multiple = str(record['multiple']) # 倍数
+    trade_amount = str(round(amount, 2)) # 量
+    trade_profit=str(round(record['profit'], 2))  # 损益
+    trade_profit_percent=str(round(record['profit_percent'], 2)) # 损益比
+    account = str(round(record['account'])) # 账户余额
 
     sql = "INSERT INTO history_cache(record_type, trade_signal, trade_multiple, trade_amount, trade_profit, trade_profit_percent, account) VALUES('"\
           +record_type+"', '"+trade_signal+"', '"+trade_multiple+"', '"+trade_amount+"', '"+trade_profit+"', '"+trade_profit_percent+"', '"+account+"')"
     __sqlite.ExecNonQuery(sql)
-
     order_info = None
-
+    amount = str(amount)
     for i in range(5):
 
         try:
@@ -127,14 +126,14 @@ def auto_trade_leverage(exchange_v2, symbol, signal,signal_before, para = list()
 
     # 生成平单的注释，邮件中提醒损益情况
     note = ''
-    profit_loss = 'null'
-    profit_loss_percent = 'null'
+    profit_loss = 0.0
+    profit_loss_percent = 0.0
     if trade_coin in position_list:
         _index = position_list.index(trade_coin)
         if len(position[_index]) > 7:
             profit_loss = position[_index][6]
             profit_loss_percent = position[_index][7]
-            note = str(profit_loss) +'，'+str(profit_loss_percent)
+            note = str(round(profit_loss, 2)) +'，'+str(round(profit_loss_percent,2))
             logger.info('交易注释生成：%s',note)
 
     #操作下单动作
@@ -156,11 +155,12 @@ def auto_trade_leverage(exchange_v2, symbol, signal,signal_before, para = list()
                 price = exchange_v1.fetch_ticker(symbol)['ask']  # 获取卖一价格
 
                 # 计算买入数量,按总资产的position_pct来计算仓位
-                buy_amount = str(balance_total * position_pct * leverage / price)
+                buy_amount = (balance_total * position_pct * leverage / price)
 
                 # 下单
                 place_order_bitfinex(exchange_v1, order_type='limit', buy_or_sell='buy', symbol=symbol,
-                                     price=price * 1.01, amount=buy_amount, record = {'multiple':str(leverage), 'profit':profit_loss, 'profit_percent':profit_loss_percent,'signal':'多单', 'account':str(balance_total)})
+                                     price=price * 1.01, amount=buy_amount,
+                                     record = {'multiple':leverage, 'profit':profit_loss, 'profit_percent':profit_loss_percent,'signal':'多单', 'account':balance_total})
                 logger.info('已下多单')
                 time.sleep(5)
 
@@ -170,11 +170,12 @@ def auto_trade_leverage(exchange_v2, symbol, signal,signal_before, para = list()
                 price = exchange_v1.fetch_ticker(symbol)['bid']  # 获取买一价格
 
                 # 计算买入数量,按总资产的position_pct来计算仓位
-                sell_amount = str(balance_total * position_pct * leverage / price)
+                sell_amount = (balance_total * position_pct * leverage / price)
 
                 # 下单
                 place_order_bitfinex(exchange_v1, order_type='limit', buy_or_sell='sell', symbol=symbol,
-                                     price=price * 0.99, amount=sell_amount, record= {'multiple':str(leverage), 'profit':profit_loss, 'profit_percent':profit_loss_percent,'signal':'空单', 'account':str(balance_total)})
+                                     price=price * 0.99, amount=sell_amount,
+                                     record= {'multiple':leverage, 'profit':profit_loss, 'profit_percent':profit_loss_percent,'signal':'空单', 'account':balance_total})
                 logger.info('已下空单')
                 time.sleep(5)
 
@@ -185,11 +186,12 @@ def auto_trade_leverage(exchange_v2, symbol, signal,signal_before, para = list()
                 # 查询持仓数量
                 position_new = __get_position(exchange_v2)
                 position_new = pd.DataFrame(position_new)
-                buy_amount = str(abs(position_new[position_new[0] == symbol_temp].iloc[0][2]))
+                buy_amount = (abs(position_new[position_new[0] == symbol_temp].iloc[0][2]))
 
                 # 下单
                 place_order_bitfinex(exchange_v1, order_type='limit', buy_or_sell='buy', symbol=symbol,
-                                     price=price * 1.01, amount=buy_amount, comment=note, record={'multiple':'null', 'profit':'null', 'profit_percent':'null','signal':'平空单', 'account':str(balance_total)})
+                                     price=price * 1.01, amount=buy_amount,
+                                     comment=note, record={'multiple':0.0, 'profit':0.0, 'profit_percent':0.0,'signal':'平空单', 'account':balance_total})
                 logger.info('已平空单')
                 time.sleep(5)
 
@@ -200,11 +202,12 @@ def auto_trade_leverage(exchange_v2, symbol, signal,signal_before, para = list()
                 # 查询持仓数量
                 position_new = __get_position(exchange_v2)
                 position_new = pd.DataFrame(position_new)
-                sell_amount = str(position_new[position_new[0] == symbol_temp].iloc[0][2])
+                sell_amount = (position_new[position_new[0] == symbol_temp].iloc[0][2])
 
                 # 下单
                 place_order_bitfinex(exchange_v1, order_type='limit', buy_or_sell='sell', symbol=symbol,
-                                     price=price * 0.99, amount=sell_amount, comment=note,  record={'multiple':'null', 'profit':'null', 'profit_percent':'null','signal':'平多单', 'account':str(balance_total)})
+                                     price=price * 0.99, amount=sell_amount,
+                                     comment=note,  record={'multiple':0.0, 'profit':0.0, 'profit_percent':0.0,'signal':'平多单', 'account':balance_total})
                 logger.info('已平多单')
 
             # =====持仓情况下：空仓转多仓  【暂时废弃】
@@ -213,7 +216,7 @@ def auto_trade_leverage(exchange_v2, symbol, signal,signal_before, para = list()
                 price = exchange_v1.fetch_ticker(symbol)['ask']  # 获取卖一价格
                 position_new = __get_position(exchange_v2)
                 position_new = pd.DataFrame(position_new)
-                buy_amount = str(abs(position_new[position_new[0] == symbol_temp].iloc[0][2]))
+                buy_amount = (abs(position_new[position_new[0] == symbol_temp].iloc[0][2]))
 
                 place_order_bitfinex(exchange_v1, order_type='limit', buy_or_sell='buy', symbol=symbol,
                                      price=price * 1.03, amount=buy_amount, comment= note)
@@ -226,7 +229,7 @@ def auto_trade_leverage(exchange_v2, symbol, signal,signal_before, para = list()
                 if base_coin == 'BTC':
                     balance_total = float(exchange_v1.fetch_balance({'type': 'trading'})['free']['BTC'])
 
-                buy_amount = str(balance_total * position_pct * leverage / price)
+                buy_amount = (balance_total * position_pct * leverage / price)
 
                 place_order_bitfinex(exchange_v1, order_type='limit', buy_or_sell='buy', symbol=symbol,
                                      price=price * 1.02, amount=buy_amount)
@@ -240,7 +243,7 @@ def auto_trade_leverage(exchange_v2, symbol, signal,signal_before, para = list()
                 # 查询持仓数量
                 position_new = __get_position(exchange_v1)
                 position_new = pd.DataFrame(position_new)
-                sell_amount = str(position_new[position_new[0] == symbol_temp].iloc[0][2])
+                sell_amount = (position_new[position_new[0] == symbol_temp].iloc[0][2])
 
                 place_order_bitfinex(exchange_v1, order_type='limit', buy_or_sell='sell', symbol=symbol,
                                      price=price * 0.97, amount=sell_amount, comment= note)
@@ -253,7 +256,7 @@ def auto_trade_leverage(exchange_v2, symbol, signal,signal_before, para = list()
                     balance_total = float(exchange_v1.fetch_balance({'type': 'trading'})['free']['BTC'])
 
                 price = exchange_v1.fetch_ticker(symbol)['bid']  # 获取买一价格
-                sell_amount = str(balance_total * position_pct * leverage / price)
+                sell_amount = (balance_total * position_pct * leverage / price)
 
                 place_order_bitfinex(exchange_v1, order_type='limit', buy_or_sell='sell', symbol=symbol,
                                      price=price * 0.98, amount=sell_amount)
