@@ -41,7 +41,7 @@ async def reply(request):
 
 @app.route("/", methods=['GET'])
 async def index(request):
-    with open(project_path() + '/webUI/templates/search.html') as html_file:
+    with open(project_path() + '/webUI/templates/search.html', encoding='utf-8') as html_file:
         template = Template(html_file.read())
         return response.html(template.render(name='index2'))
 
