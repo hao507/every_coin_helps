@@ -12,6 +12,9 @@ from common.utils import logger
 from Xbitfinex.orders import auto_trade_leverage
 from tasks.multi_task import start_bitfinex_task
 
+from common import dao
+
+lite_ins = dao.sqlite_cache
 app = Flask(__name__, static_url_path="/static")
 
 
@@ -39,11 +42,21 @@ def index():
 # ______________________执行主函数入口___________________________________________
 
 def web_call_service(input_message):
-    ans='可执行"查询持仓、下单[平多/平空/空/多,ETH,0.5P,3L]、任务[ETH,0.5P,0L,[90,3.2,0.005,0.015,1.779, 0.2]]、任务终止-ETH、查询任务、查询历史任务、help"指令'
+    ans='可执行"查询持仓、查询账户信息|5、下单[平多/平空/空/多,ETH,0.5P,3L]、任务[ETH,0.5P,0L,[90, 3.2, 0.04, 0.495, 1.4, 0.15]]、任务终止-ETH、查询任务、查询历史任务、help"指令'
 
     if input_message=='查询持仓':
         exchange= my_exchange.bitfinexV2_instance()
         ans= get_pos_info(exchange)
+    elif input_message=='查询账户信息':
+        ans= get_account_info()
+    elif input_message.startswith('查询账户信息|'):
+        sp = input_message.replace('查询账户信息|', '')
+        if re.search('^[0-9]+$', sp) is not None:
+            sp = int(sp)
+        else:
+            sp = 5
+        ans= get_account_info(num=sp)
+
     elif input_message.startswith('下单'):
         ans = play_order(input_message)
     elif input_message.startswith('任务'):
@@ -90,6 +103,15 @@ def get_pos_info(exchange):
     logger.info('查持仓注释生成：%s',note)
     return note
 
+
+def get_account_info(num = 5):
+    sql ="select record_type, trade_signal, trade_multiple, trade_amount, trade_profit, trade_profit_percent, account from history_cache  order by id desc limit "+str(num)
+    sd = lite_ins.ExecQuery(sql)
+    note = ''
+    for per in sd:
+        xx = 'record_type:' + per[0]+', trade_signal:'+per[1]+', trade_multiple:'+ per[2]+', trade_amount:'+per[3]+', trade_profit:'+ per[4] +', trade_profit_percent:'+per[5]+', account:'+per[6]
+        note += (xx+'; \n')
+    return note
 # __________________________下单操作_______________________________________
 
 

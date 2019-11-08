@@ -15,6 +15,8 @@ def test_para_online():
     #最优： 19.291647830587838 {'x': 148, 'y': 4.800000000000003, 'm': 0.0, 'n': 0.115, 'h': 1.101999999999999}btc
     #{'x': 70, 'y': 5.400000000000004, 'm': 0.0, 'n': 0.045, 'h': 1.101999999999999}btc
     para_now = [90, 3.2, 0.005, 0.015, 1.0, 0.2]
+    para_now = [90, 3.2, 0.04, 0.495, 1.4, 0.15]
+    # 任务[ETH,0.5P,0L,[90, 3.2, 0.04, 0.495, 1.4, 0.15]]
     data = k_lines.get_candle_data(my_exchange.bitfinexV2_instance(), 'ETH/USDT', '15m')
 
     data.rename(columns={'candle_begin_time_GMT8': 'candle_begin_time'}, inplace=True)

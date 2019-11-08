@@ -4,8 +4,11 @@ import pandas as pd
 from common.utils import logger
 from common.utils import send_mail
 from datetime import datetime
+from common import dao
 
-def place_order_bitfinex(exchange, order_type, buy_or_sell, symbol, price, amount,comment='下单'):
+__sqlite = dao.sqlite_cache
+
+def place_order_bitfinex(exchange, order_type, buy_or_sell, symbol, price, amount,comment='下单', record = {'multiple':'0', 'profit':'0', 'profit_percent':'0','signal':'无', 'account':'0'}):
     """
     下单
     :param exchange: 交易所
@@ -22,7 +25,21 @@ def place_order_bitfinex(exchange, order_type, buy_or_sell, symbol, price, amoun
     logger.info('邮件正文：%s', content_txt)
     threading.Thread(target=send_mail, args=(buy_or_sell+' '+symbol, content_txt)).start()
 
+    # 记录数据到sqlite
+    record_type = str(symbol) # ETH
+    trade_signal = record['signal'] #'做空/做多/平仓'
+    trade_multiple = record['multiple'] # 倍数
+    trade_amount = str(amount) # 量
+    trade_profit=record['profit']  # 损益
+    trade_profit_percent=record['profit_percent'] # 损益比
+    account = record['account'] # 账户余额
+
+    sql = "INSERT INTO history_cache(record_type, trade_signal, trade_multiple, trade_amount, trade_profit, trade_profit_percent, account) VALUES('"\
+          +record_type+"', '"+trade_signal+"', '"+trade_multiple+"', '"+trade_amount+"', '"+trade_profit+"', '"+trade_profit_percent+"', '"+account+"')"
+    __sqlite.ExecNonQuery(sql)
+
     order_info = None
+
     for i in range(5):
 
         try:
@@ -110,6 +127,8 @@ def auto_trade_leverage(exchange_v2, symbol, signal,signal_before, para = list()
 
     # 生成平单的注释，邮件中提醒损益情况
     note = ''
+    profit_loss = 'null'
+    profit_loss_percent = 'null'
     if trade_coin in position_list:
         _index = position_list.index(trade_coin)
         if len(position[_index]) > 7:
@@ -123,13 +142,16 @@ def auto_trade_leverage(exchange_v2, symbol, signal,signal_before, para = list()
     while loop_count < 5:
         loop_count += 1
         try:
+            # 查账户余额【默认USDT用于交易】
+            if base_coin == 'USDT':
+                balance_total = float(exchange_v1.fetch_balance({'type': 'trading'})['free']['USDT'])
+            elif base_coin == 'BTC':
+                balance_total = float(exchange_v1.fetch_balance({'type': 'trading'})['free']['BTC'])
+            else:
+                balance_total = 0.0
+
             # =====空仓情况下：下多单
             if signal == 1 and signal_before == 0 and trade_coin not in position_list:# in语法 相当于Java里的contains
-                if base_coin == 'USDT':
-                    balance_total = float(exchange_v1.fetch_balance({'type': 'trading'})['free']['USDT'])
-                if base_coin == 'BTC':
-                    balance_total = float(exchange_v1.fetch_balance({'type': 'trading'})['free']['BTC'])
-
                 # 获取最新的买入价格
                 price = exchange_v1.fetch_ticker(symbol)['ask']  # 获取卖一价格
 
@@ -138,17 +160,12 @@ def auto_trade_leverage(exchange_v2, symbol, signal,signal_before, para = list()
 
                 # 下单
                 place_order_bitfinex(exchange_v1, order_type='limit', buy_or_sell='buy', symbol=symbol,
-                                     price=price * 1.01, amount=buy_amount)
+                                     price=price * 1.01, amount=buy_amount, record = {'multiple':str(leverage), 'profit':profit_loss, 'profit_percent':profit_loss_percent,'signal':'多单', 'account':str(balance_total)})
                 logger.info('已下多单')
                 time.sleep(5)
 
             # =====空仓情况下：下空单
             if signal == -1 and signal_before == 0 and trade_coin not in position_list:
-                if base_coin == 'USDT':
-                    balance_total = float(exchange_v1.fetch_balance({'type': 'trading'})['free']['USDT'])
-                if base_coin == 'BTC':
-                    balance_total = float(exchange_v1.fetch_balance({'type': 'trading'})['free']['BTC'])
-
                 # 获取最新的卖出价格
                 price = exchange_v1.fetch_ticker(symbol)['bid']  # 获取买一价格
 
@@ -157,7 +174,7 @@ def auto_trade_leverage(exchange_v2, symbol, signal,signal_before, para = list()
 
                 # 下单
                 place_order_bitfinex(exchange_v1, order_type='limit', buy_or_sell='sell', symbol=symbol,
-                                     price=price * 0.99, amount=sell_amount)
+                                     price=price * 0.99, amount=sell_amount, record= {'multiple':str(leverage), 'profit':profit_loss, 'profit_percent':profit_loss_percent,'signal':'空单', 'account':str(balance_total)})
                 logger.info('已下空单')
                 time.sleep(5)
 
@@ -172,7 +189,7 @@ def auto_trade_leverage(exchange_v2, symbol, signal,signal_before, para = list()
 
                 # 下单
                 place_order_bitfinex(exchange_v1, order_type='limit', buy_or_sell='buy', symbol=symbol,
-                                     price=price * 1.01, amount=buy_amount, comment=note)
+                                     price=price * 1.01, amount=buy_amount, comment=note, record={'multiple':'null', 'profit':'null', 'profit_percent':'null','signal':'平空单', 'account':str(balance_total)})
                 logger.info('已平空单')
                 time.sleep(5)
 
@@ -187,10 +204,10 @@ def auto_trade_leverage(exchange_v2, symbol, signal,signal_before, para = list()
 
                 # 下单
                 place_order_bitfinex(exchange_v1, order_type='limit', buy_or_sell='sell', symbol=symbol,
-                                     price=price * 0.99, amount=sell_amount, comment=note)
+                                     price=price * 0.99, amount=sell_amount, comment=note,  record={'multiple':'null', 'profit':'null', 'profit_percent':'null','signal':'平多单', 'account':str(balance_total)})
                 logger.info('已平多单')
 
-            # =====持仓情况下：空仓转多仓
+            # =====持仓情况下：空仓转多仓  【暂时废弃】
             if signal == 1 and signal_before == -1 and trade_coin in position_list:
                 # 先买入平仓
                 price = exchange_v1.fetch_ticker(symbol)['ask']  # 获取卖一价格
@@ -216,7 +233,7 @@ def auto_trade_leverage(exchange_v2, symbol, signal,signal_before, para = list()
                 logger.info('已下多单，完成空转多')
                 time.sleep(3)
 
-            # =====持仓情况下：多仓转空仓
+            # =====持仓情况下：多仓转空仓 【暂时废弃】
             if signal == -1 and signal_before == 1 and trade_coin in position_list:
                 # 先卖出平仓
                 price = exchange_v1.fetch_ticker(symbol)['bid']  # 获取买一价格

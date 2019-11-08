@@ -5,6 +5,7 @@ __pycache__/
 
 # user init
 *exchange.py
+loginfo/
 
 
 # Distribution / packaging

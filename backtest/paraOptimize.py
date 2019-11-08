@@ -11,8 +11,9 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 pd.set_option('expand_frame_repr', False)  # 当列太多时不换行
 pd.set_option('display.max_rows', 1000)
 
-from strategy import bulin_K
+from strategy import bulin_K, back_return
 
+ins = back_return.BollingAdvanced()
 
 # =====寻找最优参数
 def get_data(data_name='bitfinex_dataETHUSD.h5', rule_type='15T'):
@@ -25,8 +26,8 @@ def get_data(data_name='bitfinex_dataETHUSD.h5', rule_type='15T'):
     # 转换数据周期
     all_data = evaluate.transfer_to_period_data(all_data, rule_type)
     # 选取时间段
-    all_data = all_data[all_data['candle_begin_time'] >= pd.to_datetime('2017-12-01')]
-    all_data = all_data[all_data['candle_begin_time'] < pd.to_datetime('2019-2-01')]
+    all_data = all_data[all_data['candle_begin_time'] >= pd.to_datetime('2018-01-01')]
+    all_data = all_data[all_data['candle_begin_time'] < pd.to_datetime('2019-01-01')]
     all_data.reset_index(inplace=True, drop=True)
     return all_data
 
@@ -50,10 +51,10 @@ def BulinParaOptimizer(space):
     :return:
     '''
     global dic
-    x, y, m, n, h = space['x'], space['y'], space['m'], space['n'], space['h']
-    para = [x, y, m, n, h]
+    x, y, m, n, h, j = space['x'], space['y'], space['m'], space['n'], space['h'], space['j']
+    para = [x, y, m, n, h, j]
     # para = [100, 3.25, 0.01, 0.0255,100]
-    df = bulin_K.signal_bolling(all_data.copy(), para)
+    df = ins.signal_bolling(all_data.copy(), para=para)
     # 计算资金曲线
     df = evaluate.equity_curve_with_long_and_short(df, leverage_rate=3, c_rate=2.0 / 1000)
     equity_curve = df.iloc[-1]['equity_curve']
@@ -75,10 +76,25 @@ def soup(para):
 #36952.86186159719 {'x': 90, 'y': 3.200000000000002, 'm': 0.005, 'n': 0.015, 'h': 1.7789999999999986}ETH
 #最优： 19.291647830587838 {'x': 148, 'y': 4.800000000000003, 'm': 0.0, 'n': 0.115, 'h': 1.101999999999999}BTC
 if __name__=='__main__':
-    #test
-    # spac = {'x': 90, 'y': 4.0, 'm': 0.035, 'n': 0.115, 'h': 1.5359999999999987}
-    # BulinParaOptimizer(spac)
+    """
+    # ===计算指标
+        self.n = 0  # n天移动均线
+        self.m = 0  # m倍自由差
+        self.th = 0  # 穿越上下线的偏差控制；0为下线，1为上线
+        self.th2 = 0  # 中线的偏差控制；0时即为穿越中线
+        self.th3 = 0  # 突变穿越上下轨时，该时刻的柱线和影线的最大差占该线的比例值
+        self.th4 = 0  # 止损跌幅阈值
+        self.df = None # 处理数据源
 
+    """
+    #test
+    spac = {'x': 90, 'y': 3.2, 'm': 0.04, 'n': 0.495, 'h': 1.4, 'j': 0.15}
+    BulinParaOptimizer(spac)
+    print('最优：', dic['curve'], dic['space'])
+    exit(200)
+
+    '''
+    # 全场寻优
     #寻x,y
     s_xy = [{'x': x, 'y': y, 'm': 0, 'n': 0, 'h': 100} for x in np.arange(20, 150, 1) for y in np.arange(1, 7, 0.1)]
     soup(s_xy)
@@ -89,6 +105,15 @@ if __name__=='__main__':
     m, n =dic['space']['m'], dic['space']['n']
     #寻优h
     s_xy = [{'x': x, 'y': y, 'm': m, 'n': n, 'h': h} for h in np.arange(0.01, 2, 0.001)]
+    soup(s_xy)
+    '''
+    # 部分寻优
+    # 寻m,n
+    # s_xy = [{'x': 90, 'y': 3.2, 'm': 0, 'n': 0, 'h': h, 'j': j} for j in np.arange(0.1, 0.5, 0.05) for h in np.arange(0.5, 1.5, 0.05)]
+    # soup(s_xy)
+    # h, j = dic['space']['h'], dic['space']['j']
+    # 寻优h
+    s_xy = [{'x': 90, 'y': 3.2, 'm': 0.04, 'n': 0.495, 'h': 1.4, 'j': 0.15} for n in np.arange(0.01, 2, 0.001)]
     soup(s_xy)
 
     print('最优：', dic['curve'], dic['space'])
