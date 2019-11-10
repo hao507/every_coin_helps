@@ -87,11 +87,11 @@ if __name__=='__main__':
         self.df = None # 处理数据源
 
     """
-    #test
-    spac = {'x': 90, 'y': 3.2, 'm': 0.04, 'n': 0.495, 'h': 1.4, 'j': 0.15}
-    BulinParaOptimizer(spac)
-    print('最优：', dic['curve'], dic['space'])
-    exit(200)
+    # #test
+    # spac = {'x': 90, 'y': 3.2, 'm': 0.04, 'n': 0.084, 'h': 1.4, 'j': 0.15}
+    # BulinParaOptimizer(spac)
+    # print('最优：', dic['curve'], dic['space'])
+    # exit(200)
 
     '''
     # 全场寻优
@@ -113,7 +113,7 @@ if __name__=='__main__':
     # soup(s_xy)
     # h, j = dic['space']['h'], dic['space']['j']
     # 寻优h
-    s_xy = [{'x': 90, 'y': 3.2, 'm': 0.04, 'n': 0.495, 'h': 1.4, 'j': 0.15} for n in np.arange(0.01, 2, 0.001)]
+    s_xy = [{'x': 90, 'y': 3.2, 'm': m, 'n': n, 'h': 100, 'j': 0.15} for m in np.arange(0.001, 0.1, 0.001) for n in np.arange(0.001, 0.1, 0.001)]
     soup(s_xy)
 
     print('最优：', dic['curve'], dic['space'])

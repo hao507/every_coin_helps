@@ -13,29 +13,72 @@ from datetime import datetime, timedelta
 from logging.handlers import TimedRotatingFileHandler
 
 
-def debug_hander(log_name):
-    logger = logging.getLogger(log_name)
-    logger.setLevel(logging.DEBUG)
-    # 创建一个handler，用于写入日志文件
-    name = os.path.abspath(os.path.join(os.path.dirname(__file__), "../loginfo")) + '/' + time.strftime("%Y%m%d") + '.log'
-    fh= TimedRotatingFileHandler(filename=name, when='D', encoding="utf-8")
-    fh.setLevel(logging.DEBUG)
+def singleton (cls, *args, **kwargs):
+    '''
+    static singleton mode wraper
+    :param cls:
+    :param args:
+    :param kwargs:
+    :return:
+    '''
+    instances = {}
+    def get_instance (*args, **kwargs):
+        if cls not in instances:
+            instances[cls] = cls(*args, **kwargs)
+            return instances[cls]
+        else :
+            return instances[cls]
+    return get_instance
 
-    # 再创建一个handler，用于输出到控制台
-    ch = logging.StreamHandler()
-    ch.setLevel(logging.DEBUG)#服务器运行时改成info
+@singleton
+class Debug_hangder(object):
+    '''通过继承实现的单例模式是有点突出的。因为它跟其他方式有点不同，它是通过new方法的改造实现的。如果之前有就返回之前的实例；如果没有，就创建新的实例。'''
+    # def __new__(cls, *args, **kwargs):
+    #     # singleton mode
+    #     if not hasattr(cls, '_instance'):
+    #         cls._instance = super().__new__(cls)
+    #     return cls._instance
 
-    # 定义handler的输出格式
-    formatter = logging.Formatter('%(asctime)-8s %(filename)-8s %(levelname)-8s %(name)-8s [%(processName)s-%(process)d] [line:%(lineno)d]  %(message)s')
-    fh.setFormatter(formatter)
-    ch.setFormatter(formatter)
+    def __init__(self):
+        print('init Debug_hangder...')
+        self.log = self.make_hander('utils')
 
-    # 给logger添加handler
-    logger.addHandler(fh)
-    logger.addHandler(ch)
-    return logger
+    def get_logger(self, name= None):
+        if name is None:
+            return self.log
+        else:
+            return self.make_hander(name)
 
-logger = debug_hander('utils')
+    @staticmethod
+    def make_hander(log_name):
+        print('make new debug hander: ',log_name)
+        logger = logging.getLogger(log_name)
+        logger.setLevel(logging.DEBUG)
+
+        # 创建一个handler，用于写入日志文件
+        log_path =os.path.abspath(os.path.join(os.path.dirname(__file__), "../loginfo"))
+        name = log_path + '/' + time.strftime("%Y%m%d") + '.log'
+        if not os.path.isdir(log_path):
+            os.makedirs(log_path)
+        fh = TimedRotatingFileHandler(filename=name, when='D', encoding="utf-8")
+        fh.setLevel(logging.INFO)
+
+        # 再创建一个handler，用于输出到控制台
+        ch = logging.StreamHandler()
+        ch.setLevel(logging.DEBUG)# 服务器运行时改成info
+
+        # 定义handler的输出格式
+        formatter = logging.Formatter('%(asctime)-8s %(filename)-8s %(levelname)-8s %(name)-12s [line:%(lineno)d]  %(message)s')
+        fh.setFormatter(formatter)
+        ch.setFormatter(formatter)
+
+        # 给logger添加handler
+        logger.addHandler(fh)
+        logger.addHandler(ch)
+        return logger
+
+
+logger = Debug_hangder().get_logger()
 
 # sleep
 def next_run_time(time_interval):

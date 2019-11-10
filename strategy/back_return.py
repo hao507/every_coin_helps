@@ -30,7 +30,7 @@ class BollingAdvanced:
         self.n = 0  # n天移动均线
         self.m = 0  # m倍自由差
         self.th = 0  # 穿越上下线的偏差控制；0为下线，1为上线
-        self.th2 = 0  # 中线的偏差控制；0时即为穿越中线
+        self.th2 = 0  # 中线的偏差控制；0时即为穿越中线 偏差控制在0.001
         self.th3 = 0  # 突变穿越上下轨时，该时刻的柱线和影线的最大差占该线的比例值
         self.th4 = 0  # 止损跌幅阈值
         self.df = None # 处理数据源
@@ -105,9 +105,6 @@ class BollingAdvanced:
             pass
 
         self.df.loc[self.df['signal_source'] == 0, 'signal_source'] = np.NaN
-        # self.df.to_excel(utils.project_path() + '/excel_output05.xls', sheet_name='biu')
-
-        self.df.drop(['median', 'std', 'upper', 'lower', 'bbPb'], axis=1, inplace=True)
 
         self.df.loc[(self.df['signal_source'] > 0) & (self.df['signal_source'] < 10), 'signal'] = 1
         self.df.loc[(self.df['signal_source'] < 0) & (self.df['signal_source'] > -10), 'signal'] = -1
@@ -117,7 +114,10 @@ class BollingAdvanced:
         self.df['pos'] = self.df['signal'].shift()
         self.df['pos'].fillna(method='ffill', inplace=True)
         self.df['pos'].fillna(value=0, inplace=True)  # 将初始行数的position补全为0
-
+        # 保存分析
+        # self.df.to_excel(utils.project_path() + '/excel_output05.xls', sheet_name='biu')
+        # 精简表
+        self.df.drop(['median', 'std', 'upper', 'lower', 'bbPb'], axis=1, inplace=True)
         return self.df
 
     def judge_buy(self, df_buy):
@@ -151,7 +151,7 @@ class BollingAdvanced:
             if index == 0:  # 略过第一维度
                 continue
 
-            if row['signal_buy'] == 0:
+            if row['signal_buy'] == 0: # row['signal_buy'] 只代表穿越信号导致的下单状态
                 state = self.__sell_find(flag=0, index=index, df_copy=df_copy, df_sell=df_sell, state=state)
                 pass
 
@@ -191,7 +191,7 @@ class BollingAdvanced:
         elif state[1] == 1:  # 持多仓
             if flag == 0:
                 # ===找出做多中线平仓信号
-                if (df_copy.loc[index, 'bbPb'] < (0.5 + self.th2)) and (df_copy.loc[index - 1, 'bbPb'] >= (0.5 + self.th2)):
+                if (df_copy.loc[index, 'bbPb'] < (0.5 - self.th2)) and (df_copy.loc[index - 1, 'bbPb'] >= (0.5 - self.th2)):
                     df_sell.loc[index, 'signal_sell'] = 10
                     state = (0, 0, 10)  # 平仓掉了之前的状态
             elif flag == 1 or flag == -2:  # 依然是做多，则继续 【-2本质还是穿越上线】
@@ -230,7 +230,7 @@ class BollingAdvanced:
 
 
 if __name__=='__main__':
-    para_now = [91, 2.9, 0, 0.055, 0.8, 0.3]
+    para_now = [90, 3.2, 0.04, 0.05, 1.4, 0.15]
     data = pd.read_excel(utils.project_path()+'/excel_output.xls', sheet_name='src')
     # 计算交易信号
     ins = BollingAdvanced()

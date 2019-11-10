@@ -1,4 +1,4 @@
-from common import k_lines
+from common import k_lines,utils
 from domain import my_exchange
 from strategy import bulin_K, back_return
 from backtest import evaluate
@@ -20,6 +20,8 @@ def test_para_online():
     data = k_lines.get_candle_data(my_exchange.bitfinexV2_instance(), 'ETH/USDT', '15m')
 
     data.rename(columns={'candle_begin_time_GMT8': 'candle_begin_time'}, inplace=True)
+    # 保存分析
+    # data.to_excel(utils.project_path() + '/excel_output.xls', sheet_name='src')
     # 计算交易信号
     df = back_return.BollingAdvanced().signal_bolling(data, para=para_now)
     # 计算资金曲线
