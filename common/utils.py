@@ -49,7 +49,7 @@ class Debug_hangder(object):
         else:
             return self.make_hander(name)
 
-    def make_hander(log_name):
+    def make_hander(self, log_name):
         print('make new debug hander: ',log_name)
         logger = logging.getLogger(log_name)
         logger.setLevel(logging.DEBUG)
