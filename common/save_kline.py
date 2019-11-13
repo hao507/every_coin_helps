@@ -43,7 +43,7 @@ def execTask():
     data_LTC = k_lines.__get_candle_data(my_exchange.bitfinexV2_instance(), 'LTC/USDT', '5m')
     data_XRP = k_lines.__get_candle_data(my_exchange.bitfinexV2_instance(), 'XRP/USDT', '5m')
     '''
-    utils.logger.info('操作执行结束')
+    utils.log_exp.info('操作执行结束')
 
 def write_2_file_hdf5(kData,path='/result/default.h5'):
     '''
@@ -59,7 +59,7 @@ def write_2_file_hdf5(kData,path='/result/default.h5'):
     h5 = pd.HDFStore(path_t, 'w', complevel=4, complib='blosc')
     h5['data'] = kData
     h5.close()
-    utils.logger.info('写入完成')
+    utils.log_exp.info('写入完成')
 
 
 def data_merge_2_file(df,global_df, path='/result/data_xrp.h5'):
@@ -98,7 +98,7 @@ def timerTask():
     if execF is False:
         execTask()  # 判断任务是否执行过，没有执行就执行
         execF = True
-        utils.logger.info("定时器执行时间：%s" ,dt.now().strftime("%Y-%m-%d %H:%M:%S"))
+        utils.log_exp.info("定时器执行时间：%s", dt.now().strftime("%Y-%m-%d %H:%M:%S"))
     else:  # 任务执行过，判断时间是否过了三天。如果是就执行任务
         desTime = pd.datetime.today().date()
         if desTime > doTime+ pd.Timedelta(days=3) or desTime.day==1 :

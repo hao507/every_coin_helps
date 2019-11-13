@@ -2,7 +2,7 @@
 from common import utils
 import numpy as np
 import math
-from common.utils import logger
+from common.utils import log_exp
 import pandas as pd
 pd.set_option('expand_frame_repr', False)  # 当列太多时不换行
 pd.set_option('display.max_rows', 1000)
@@ -184,9 +184,9 @@ class BollingAdvanced:
                     df_sell.loc[index, 'signal_sell'] = -10
                     state = (0, 0, -10)  # 平仓掉了之前的状态
             elif flag == -1 or flag == 2: # 依然是做空，则继续
-                logger.debug('持空仓信号为%d,当前信号为%d, 继续做空！', state[1], flag)
+                log_exp.debug('持空仓信号为%d,当前信号为%d, 继续做空！', state[1], flag)
             elif flag == -2:
-                logger.error('持有空仓；由下而上快穿越上线，反向做空信号。该信号不存在，因为中线附近已平仓，请检查！')
+                log_exp.error('持有空仓；由下而上快穿越上线，反向做空信号。该信号不存在，因为中线附近已平仓，请检查！')
 
         elif state[1] == 1:  # 持多仓
             if flag == 0:
@@ -195,9 +195,9 @@ class BollingAdvanced:
                     df_sell.loc[index, 'signal_sell'] = 10
                     state = (0, 0, 10)  # 平仓掉了之前的状态
             elif flag == 1 or flag == -2:  # 依然是做多，则继续 【-2本质还是穿越上线】
-                logger.debug('持多仓信号为%d,当前信号为%d, 继续做多！', state[1], flag)
+                log_exp.debug('持多仓信号为%d,当前信号为%d, 继续做多！', state[1], flag)
             elif flag == 2:
-                logger.error('持有多仓；由上而下快穿越下线，反向做多信号。该信号不存在，因为中线附近已平仓，请检查！')
+                log_exp.error('持有多仓；由上而下快穿越下线，反向做多信号。该信号不存在，因为中线附近已平仓，请检查！')
 
         elif state[1] == 2:  # 持仓状态为2
             if flag == 0 or flag == -1 or flag == 2:
@@ -210,7 +210,7 @@ class BollingAdvanced:
                         df_sell.loc[index, 'signal_sell'] = 20
                         state = (0, 0, 20)  # 平仓掉了之前的状态
             elif flag == -2 or flag == 1: # 【穿越下线的两种形态】
-                logger.debug('持多仓信号为%d,当前信号为%d, 继续做多！', state[1], flag)
+                log_exp.debug('持多仓信号为%d,当前信号为%d, 继续做多！', state[1], flag)
 
         elif state[1] == -2:  # 迁移状态为-2
             if flag == 0 or flag == 1 or flag == -2:
@@ -223,7 +223,7 @@ class BollingAdvanced:
                         df_sell.loc[index, 'signal_sell'] = -20
                         state = (0, 0, -20)  # 平仓掉了之前的状态
             elif flag == 2 or flag == -1:  # 【穿越下线的两种形态】
-                logger.debug('持空仓信号为%d,当前信号为%d, 继续做空！', state[1], flag)
+                log_exp.debug('持空仓信号为%d,当前信号为%d, 继续做空！', state[1], flag)
             pass
 
         return state

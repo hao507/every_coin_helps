@@ -1,7 +1,7 @@
 import threading
 import time
 import pandas as pd
-from common.utils import logger
+from common.utils import log_exp
 from common.utils import send_mail
 from datetime import datetime
 from common import dao
@@ -19,10 +19,10 @@ def place_order_bitfinex(exchange, order_type, buy_or_sell, symbol, price, amoun
     :param amount: float 买卖量
     :return:
     """
-    logger.info('下单 order_type： %s, buy_or_sell： %s, symbol： %s, price： %s, amount： %s', order_type, buy_or_sell, symbol, price, str(amount))
+    log_exp.info('下单 order_type： %s, buy_or_sell： %s, symbol： %s, price： %s, amount： %s', order_type, buy_or_sell, symbol, price, str(amount))
 
     content_txt = '执行时间：' + datetime.now().strftime("%Y-%m-%d %H:%M:%S")+'\n持仓情况(损益，损益百分比)：'+comment+'\n 执行参数（价格，数量）：'+str(round(price, 4))+'，'+str(round(amount,3))
-    logger.info('邮件正文：%s', content_txt)
+    log_exp.info('邮件正文：%s', content_txt)
     threading.Thread(target=send_mail, args=(buy_or_sell+' '+symbol, content_txt)).start()
 
     # 记录数据到sqlite
@@ -62,14 +62,14 @@ def place_order_bitfinex(exchange, order_type, buy_or_sell, symbol, price, amoun
                 pass
 
 
-            logger.info('下单信息：%s', order_info)
+            log_exp.info('下单信息：%s', order_info)
             return order_info
 
         except Exception as e:
-            logger.error('下单报错，1s后重试%s', e)
+            log_exp.error('下单报错，1s后重试%s', e)
             time.sleep(1)
 
-    logger.error('下单报错次数过多，程序终止')
+    log_exp.error('下单报错次数过多，程序终止')
     threading.Thread(target=send_mail, args=('下单报错次数过多，程序终止','failed order, time:'+datetime.now().strftime("%Y-%m-%d %H:%M:%S"))).start()
     exit()
 
@@ -86,10 +86,10 @@ def __get_position(exchange):
             return position
 
         except Exception as e:
-            logger.info('下单查询持仓报错%s', e)
+            log_exp.info('下单查询持仓报错%s', e)
             time.sleep(10)
 
-    logger.error('下单查询多次报错')
+    log_exp.error('下单查询多次报错')
 
 # bitfinex合约下单函数
 def auto_trade_leverage(exchange_v2, symbol, signal,signal_before, para = list()):
@@ -106,23 +106,23 @@ def auto_trade_leverage(exchange_v2, symbol, signal,signal_before, para = list()
 
     # 获取仓位信息，需要有仓位才能获取，不然是空白，这里获取的是Margin账户的信息
     position = __get_position(exchange_v2)
-    logger.debug('持仓情况%s', position)
+    log_exp.debug('持仓情况%s', position)
 
     # 用来存储已持仓的币种列表
     position_list = []
     position_all_amount = []
     if len(position) == 0:
-        logger.info('当前无持仓')
+        log_exp.info('当前无持仓')
     if len(position) != 0:
         for p in position:
             position_symbol = p[0][1:-3] #'tBTCUSD'截取一段
             position_list.append(position_symbol)
             position_amount = p[2]
             position_all_amount.append(position_amount)
-        logger.info('所有持仓币种：%s',position_list)
+        log_exp.info('所有持仓币种：%s', position_list)
         #显示第一位的币种情况
-        logger.info('首个持仓币种 %s', position_list[0])
-        logger.info('首个持仓数量 %s', position_all_amount[0])
+        log_exp.info('首个持仓币种 %s', position_list[0])
+        log_exp.info('首个持仓数量 %s', position_all_amount[0])
 
     # 生成平单的注释，邮件中提醒损益情况
     note = ''
@@ -134,7 +134,7 @@ def auto_trade_leverage(exchange_v2, symbol, signal,signal_before, para = list()
             profit_loss = position[_index][6]
             profit_loss_percent = position[_index][7]
             note = str(round(profit_loss, 2)) +'，'+str(round(profit_loss_percent,2))
-            logger.info('交易注释生成：%s',note)
+            log_exp.info('交易注释生成：%s', note)
 
     #操作下单动作
     loop_count =0
@@ -161,7 +161,7 @@ def auto_trade_leverage(exchange_v2, symbol, signal,signal_before, para = list()
                 place_order_bitfinex(exchange_v1, order_type='limit', buy_or_sell='buy', symbol=symbol,
                                      price=price * 1.01, amount=buy_amount,
                                      record = {'multiple':leverage, 'profit':profit_loss, 'profit_percent':profit_loss_percent,'signal':'多单', 'account':balance_total})
-                logger.info('已下多单')
+                log_exp.info('已下多单')
                 time.sleep(5)
 
             # =====空仓情况下：下空单
@@ -176,7 +176,7 @@ def auto_trade_leverage(exchange_v2, symbol, signal,signal_before, para = list()
                 place_order_bitfinex(exchange_v1, order_type='limit', buy_or_sell='sell', symbol=symbol,
                                      price=price * 0.99, amount=sell_amount,
                                      record= {'multiple':leverage, 'profit':profit_loss, 'profit_percent':profit_loss_percent,'signal':'空单', 'account':balance_total})
-                logger.info('已下空单')
+                log_exp.info('已下空单')
                 time.sleep(5)
 
             # =====持仓情况下：平空单
@@ -191,8 +191,8 @@ def auto_trade_leverage(exchange_v2, symbol, signal,signal_before, para = list()
                 # 下单
                 place_order_bitfinex(exchange_v1, order_type='limit', buy_or_sell='buy', symbol=symbol,
                                      price=price * 1.01, amount=buy_amount,
-                                     comment=note, record={'multiple':0.0, 'profit':0.0, 'profit_percent':0.0,'signal':'平空单', 'account':balance_total})
-                logger.info('已平空单')
+                                     comment=note, record={'multiple':0.0, 'profit':profit_loss, 'profit_percent':profit_loss_percent,'signal':'平空单', 'account':balance_total})
+                log_exp.info('已平空单')
                 time.sleep(5)
 
             # =====持仓情况下：平多单
@@ -207,8 +207,8 @@ def auto_trade_leverage(exchange_v2, symbol, signal,signal_before, para = list()
                 # 下单
                 place_order_bitfinex(exchange_v1, order_type='limit', buy_or_sell='sell', symbol=symbol,
                                      price=price * 0.99, amount=sell_amount,
-                                     comment=note,  record={'multiple':0.0, 'profit':0.0, 'profit_percent':0.0,'signal':'平多单', 'account':balance_total})
-                logger.info('已平多单')
+                                     comment=note,  record={'multiple':0.0, 'profit':profit_loss, 'profit_percent':profit_loss_percent,'signal':'平多单', 'account':balance_total})
+                log_exp.info('已平多单')
 
             # =====持仓情况下：空仓转多仓  【暂时废弃】
             if signal == 1 and signal_before == -1 and trade_coin in position_list:
@@ -220,7 +220,7 @@ def auto_trade_leverage(exchange_v2, symbol, signal,signal_before, para = list()
 
                 place_order_bitfinex(exchange_v1, order_type='limit', buy_or_sell='buy', symbol=symbol,
                                      price=price * 1.03, amount=buy_amount, comment= note)
-                logger.info('已平空单，稍后下多单')
+                log_exp.info('已平空单，稍后下多单')
 
                 # 然后下多单
                 price = exchange_v1.fetch_ticker(symbol)['ask']  # 获取卖一价格
@@ -233,7 +233,7 @@ def auto_trade_leverage(exchange_v2, symbol, signal,signal_before, para = list()
 
                 place_order_bitfinex(exchange_v1, order_type='limit', buy_or_sell='buy', symbol=symbol,
                                      price=price * 1.02, amount=buy_amount)
-                logger.info('已下多单，完成空转多')
+                log_exp.info('已下多单，完成空转多')
                 time.sleep(3)
 
             # =====持仓情况下：多仓转空仓 【暂时废弃】
@@ -247,7 +247,7 @@ def auto_trade_leverage(exchange_v2, symbol, signal,signal_before, para = list()
 
                 place_order_bitfinex(exchange_v1, order_type='limit', buy_or_sell='sell', symbol=symbol,
                                      price=price * 0.97, amount=sell_amount, comment= note)
-                logger.info('已平多单，稍后下空单')
+                log_exp.info('已平多单，稍后下空单')
 
                 # 然后下空单
                 if base_coin == 'USDT':
@@ -260,11 +260,11 @@ def auto_trade_leverage(exchange_v2, symbol, signal,signal_before, para = list()
 
                 place_order_bitfinex(exchange_v1, order_type='limit', buy_or_sell='sell', symbol=symbol,
                                      price=price * 0.98, amount=sell_amount)
-                logger.info('已下空单，完成多转空')
+                log_exp.info('已下空单，完成多转空')
                 time.sleep(3)
 
             break
 
         except Exception as e:
-            logger.error('下单函数报错，10秒后重试,%s', e)
+            log_exp.error('下单函数报错，10秒后重试,%s', e)
             time.sleep(10)

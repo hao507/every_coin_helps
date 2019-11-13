@@ -6,7 +6,7 @@ from time import sleep
 import pandas as pd
 from common import utils
 
-from common.utils import logger
+from common.utils import log_exp
 from common import k_lines
 import copy
 '''
@@ -32,7 +32,7 @@ class task_making:
 
     #执行外部大循环，主入口
     def do_work(self):
-        logger.info('program is runing now !')
+        log_exp.info('program is runing now !')
         while True:
             try:
                 self.run_instance()
@@ -49,12 +49,12 @@ class task_making:
         #数据获取方式优化
         if self.next_time < datetime.now():
             #下个运行时刻不知什么原因错过了
-            logger.error('当前时间(%s)超过了下次运行时间(%s)，请检查。程序立刻执行数据更新',datetime.now().strftime("%Y-%m-%d %H:%M:%S"),self.next_time.strftime("%Y-%m-%d %H:%M:%S"))
+            log_exp.error('当前时间(%s)超过了下次运行时间(%s)，请检查。程序立刻执行数据更新', datetime.now().strftime("%Y-%m-%d %H:%M:%S"), self.next_time.strftime("%Y-%m-%d %H:%M:%S"))
             self.k_data = k_lines.update_kline(self.exchange, self.symbol, self.interval_time, self.next_time)
         else:
             if ((self.next_time - datetime.now())< timedelta(seconds=60)):
                 #差60s就到达下一个运行时间，直接检测执行
-                logger.debug('马上到点，启动高频检测数据[间隔50s]')
+                log_exp.debug('马上到点，启动高频检测数据[间隔50s]')
                 self.k_data = k_lines.update_kline(self.exchange, self.symbol, self.interval_time, self.next_time,detect_time=50)
             else:
                 #选择sleep方式，而非不断循环执行
@@ -67,12 +67,12 @@ class task_making:
             #logger.debug('k_data tail(3): \n %s', self.k_data.tail(3))
             #拿到时刻数据，进行信号分析
             df_signal = self.trading_signal(self.k_data,self.strtegy_para)
-            logger.debug('df_signal tail(3): \n %s',df_signal.tail(3))
+            log_exp.debug('df_signal tail(3): \n %s', df_signal.tail(3))
             signal = df_signal.iloc[-1]['signal']  # 最新数据的那个信号
             signal_before = df_signal.iloc[-1]['pos']  # 前一刻的持仓
-            logger.info('当前最新数据时间 %s', self.next_time)
-            logger.info('当前交易信号为:%s', signal)
-            logger.info('前一刻理论持仓为:%s', signal_before)
+            log_exp.info('当前最新数据时间 %s', self.next_time)
+            log_exp.info('当前交易信号为:%s', signal)
+            log_exp.info('前一刻理论持仓为:%s', signal_before)
             #调试代码
             # signal = 1
             # signal_before = 0
@@ -113,7 +113,7 @@ class task_making:
                 else:
                     operation_para_modify[0] = 1
 
-                    logger.info('%d倍持仓！')
+                    log_exp.info('%d倍持仓！')
                 # 具体参数，需要结合对应函数给相应参数
                 self.trading_operation(self.exchange, self.symbol, signal, signal_before, operation_para_modify)
-            logger.debug('----------group line-------------')
+            log_exp.debug('----------group line-------------')

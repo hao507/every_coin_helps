@@ -13,7 +13,7 @@
 """
 
 import sqlite3
-from common.utils import logger
+from common.utils import log_exp
 from common.utils import project_path
 
 
@@ -30,7 +30,7 @@ class SQLITE:
         返回: conn.cursor()
         """
         if not self.db:
-            logger.error("没有设置数据库信息")
+            log_exp.error("没有设置数据库信息")
             raise (NameError, "没有设置数据库信息")
         # 连接到SQLite数据库
         # 数据库文件是test.db
@@ -38,7 +38,7 @@ class SQLITE:
         conn = sqlite3.connect(self.db)
         cur = conn.cursor()
         if not cur:
-            logger.error("连接数据库失败")
+            log_exp.error("连接数据库失败")
             raise (NameError, "连接数据库失败")
         else:
             return conn, cur
@@ -61,7 +61,7 @@ class SQLITE:
             cur.execute(sql)
             resList = cur.fetchall()
         except Exception as e:
-            logger.error("sql执行失败"+ repr(e) + sql)
+            log_exp.error("sql执行失败" + repr(e) + sql)
         finally:
             # 查询完毕后必须关闭连接
             conn.close()
@@ -82,7 +82,7 @@ class SQLITE:
             cur.execute(sql)
             conn.commit()
         except Exception as e:
-            logger.error("sql执行失败" + repr(e) + sql)
+            log_exp.error("sql执行失败" + repr(e) + sql)
         finally:
             conn.close()
 
@@ -108,7 +108,7 @@ class SQLITE:
         except Exception as e:
             info = "sql事务执行失败：" + repr(e) + currrent_sql
             conn.rollback()
-            logger.error('非预见性异常'+info)
+            log_exp.error('非预见性异常' + info)
             raise (OSError,'自定义error')
         finally:
             conn.close()

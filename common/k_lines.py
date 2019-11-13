@@ -3,7 +3,7 @@ import time
 from time import sleep
 import pandas as pd
 from common import utils
-from common.utils import logger
+from common.utils import log_exp
 
 pd.set_option('display.max_rows', 1000)
 
@@ -28,7 +28,7 @@ def get_candle_data(exchange, symbol, time_interval='1m', is_contract =False):
                 # bitfinex V2拿数据 v1处理资产
                 content = exchange.fetch_ohlcv(symbol, timeframe=time_interval, limit=1000, since=None)
             else:
-                logger.error('错误的交易所，exchage.name %s',exchange.name)
+                log_exp.error('错误的交易所，exchage.name %s', exchange.name)
                 exit(110)
             # 整理数据
             df = pd.DataFrame(content, dtype=float)
@@ -41,7 +41,7 @@ def get_candle_data(exchange, symbol, time_interval='1m', is_contract =False):
         except Exception as e:
             if loop_count>=5 :
                 break
-            logger.error('下载数据报错,10秒后重试%s', e)
+            log_exp.error('下载数据报错,10秒后重试%s', e)
             time.sleep(20)
 
 
@@ -53,7 +53,7 @@ def update_kline(exchange,symbol,interval_time,next_run_time,detect_time=0):
     i = 0 #重试次数
     while i<6:
         i+=1
-        logger.debug('next data time(%s): %s',str(i),next_run_time)
+        log_exp.debug('next data time(%s): %s', str(i), next_run_time)
         k_data = get_candle_data(exchange, symbol,interval_time,False)
 
         #logger.debug('获取的kline最后一行(%s)：\n%s',datetime.now().strftime("%Y-%m-%d %H:%M:%S"),k_data.tail(1))
@@ -66,12 +66,12 @@ def update_kline(exchange,symbol,interval_time,next_run_time,detect_time=0):
                     sleep(20)
                     continue
                 else:
-                    logger.debug('直接返回最新数据，tail(1)\n%s', _temp)
+                    log_exp.debug('直接返回最新数据，tail(1)\n%s', _temp)
                     return k_data
         else:#检测数据模式
             if next_temp.empty:#当前时刻数据存在
                 sleep(detect_time)
                 continue
             else:
-                logger.debug('侦测到最新数据并返回，tail(1)\n%s', next_temp)
+                log_exp.debug('侦测到最新数据并返回，tail(1)\n%s', next_temp)
                 return k_data

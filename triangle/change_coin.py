@@ -4,7 +4,7 @@
 
 '''
 from domain import my_exchange
-from common.utils import logger
+from common.utils import log_exp
 import time
 
 exchange = my_exchange.okex_instance()
@@ -29,7 +29,7 @@ def profits_calculte(eth =100):
     profile = usd_num -eth_100_total_usd #利润
     print('利润为 ',profile)
     if profile > 0:
-        logger.info('可赚 %s', profile)
+        log_exp.info('可赚 %s', profile)
     pass
 
 if __name__== '__main__':

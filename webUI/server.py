@@ -11,7 +11,7 @@ from multiprocessing import Process
 
 from Xbitfinex import orders
 from domain import my_exchange
-from common.utils import logger
+from common.utils import log_exp
 from Xbitfinex.orders import auto_trade_leverage
 from tasks.multi_task import start_bitfinex_task
 
@@ -103,7 +103,7 @@ def get_pos_info(exchange):
     '''
   # 获取仓位信息，需要有仓位才能获取，不然是空白，这里获取的是Margin账户的信息
     position = orders.__get_position(exchange)
-    logger.debug('持仓情况%s', position)
+    log_exp.debug('持仓情况%s', position)
 
     # 用来存储已持仓的币种列表
     position_list = []
@@ -116,7 +116,7 @@ def get_pos_info(exchange):
             position_list.append(position_symbol)
             position_amount = p[2]
             position_all_amount.append(position_amount)
-        logger.info('所有持仓币种：%s',position_list)
+        log_exp.info('所有持仓币种：%s', position_list)
 
     # 生成注释，邮件中提醒损益情况
     note = ''
@@ -126,7 +126,7 @@ def get_pos_info(exchange):
             profit_loss = position[_index][6]
             profit_loss_percent = position[_index][7]
             note += trade_coin+'[ 利润：$'+str(round(profit_loss,2)) +', 损益：'+str(round(profit_loss_percent,2))+'%]</br>'
-    logger.info('查持仓注释生成：%s',note)
+    log_exp.info('查持仓注释生成：%s', note)
     return note
 
 

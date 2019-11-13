@@ -49,7 +49,6 @@ class Debug_hangder(object):
         else:
             return self.make_hander(name)
 
-    @staticmethod
     def make_hander(log_name):
         print('make new debug hander: ',log_name)
         logger = logging.getLogger(log_name)
@@ -60,7 +59,7 @@ class Debug_hangder(object):
         name = log_path + '/' + time.strftime("%Y%m%d") + '.log'
         if not os.path.isdir(log_path):
             os.makedirs(log_path)
-        fh = TimedRotatingFileHandler(filename=name, when='D', encoding="utf-8")
+        fh = TimedRotatingFileHandler(filename=name, when='D', interval=1, backupCount=30, encoding="utf-8")
         fh.setLevel(logging.INFO)
 
         # 再创建一个handler，用于输出到控制台
@@ -78,7 +77,7 @@ class Debug_hangder(object):
         return logger
 
 
-logger = Debug_hangder().get_logger()
+log_exp = Debug_hangder().get_logger()
 
 # sleep
 def next_run_time(time_interval):
@@ -96,7 +95,7 @@ def next_run_time(time_interval):
             else:
                 target_time = now_time.replace(hour=now_time.hour + 1, minute=0, second=0, microsecond=0)
 
-        logger.debug('下次运行时间%s', target_time)
+        log_exp.debug('下次运行时间%s', target_time)
         return target_time
     else:
         exit('time_interval doesn\'t end with m')
@@ -167,13 +166,13 @@ def send_mail(title, content, username='a1148270327@126.com', passwd='Aa110998',
             flag = False
 
         except Exception as e:
-            logger.error('email 重发第%s次，info：%s',str(i), e)
+            log_exp.error('email 重发第%s次，info：%s', str(i), e)
             i+=1
             time.sleep(60)
     if flag:
-        logger.info('email send failed.')
+        log_exp.info('email send failed.')
     else:
-        logger.info('email send success.')
+        log_exp.info('email send success.')
 
 '''
 通过上面的方式来新建一个run函数来驱动协程函数发送邮件：
@@ -200,3 +199,6 @@ def file_obj_convert(fileName='/data/k_df.pkl',obj = None):
             Person = pickle.load(f)
         print('读取完毕')
         return Person
+
+if __name__=='__main__':
+    log_exp.debug('run wo')
