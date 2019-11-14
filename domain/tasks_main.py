@@ -113,7 +113,7 @@ class task_making:
                 else:
                     operation_para_modify[0] = 1
 
-                    log_exp.info('%d倍持仓！')
+                    log_exp.info('%d倍持仓！', ratio)
                 # 具体参数，需要结合对应函数给相应参数
                 self.trading_operation(self.exchange, self.symbol, signal, signal_before, operation_para_modify)
             log_exp.debug('----------group line-------------')

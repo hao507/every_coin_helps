@@ -68,7 +68,7 @@ def request_para(request):
 # ______________________执行主函数入口___________________________________________
 
 def web_call_service(input_message):
-    ans='可执行"查询持仓、查询账户信息|5、下单[平多/平空/空/多,ETH,0.5P,3L]、任务[ETH,0.5P,0L,[90, 3.2, 0.04, 0.084, 1.4, 0.15]]、任务终止-ETH、查询任务、查询历史任务、help"指令'
+    ans='可执行"查询持仓、查询账户信息|5、下单[平多/平空/空/多,ETH,0.5P,3L]、任务[ETH,0.5P,0L,[90, 3.2, 0.054, 0.084, 1.6, 0.15]]、任务终止-ETH、查询任务、查询历史任务、help"指令'
 
     if input_message=='查询持仓':
         exchange= my_exchange.bitfinexV2_instance()
