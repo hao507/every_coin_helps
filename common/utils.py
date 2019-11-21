@@ -10,7 +10,7 @@ from email.header import Header
 from email.mime.text import MIMEText
 
 from datetime import datetime, timedelta
-from common.safe_rotating_handler import SafeRotatingFileHandler
+from cloghandler import ConcurrentRotatingFileHandler
 
 
 def singleton (cls, *args, **kwargs):
@@ -59,7 +59,8 @@ class Debug_hangder(object):
         name = log_path + '/' + time.strftime("%Y%m%d") + '.log'
         if not os.path.isdir(log_path):
             os.makedirs(log_path)
-        fh = SafeRotatingFileHandler(filename=name, when='D', interval=1, backupCount=30, encoding="utf-8")
+
+        fh = ConcurrentRotatingFileHandler(name, "a", maxBytes=64 * 1024 * 1024, backupCount=30, encoding='utf8')
         fh.setLevel(logging.INFO)
 
         # 再创建一个handler，用于输出到控制台
