@@ -10,7 +10,7 @@ from email.header import Header
 from email.mime.text import MIMEText
 
 from datetime import datetime, timedelta
-from cloghandler import ConcurrentRotatingFileHandler
+from concurrent_log_handler import ConcurrentRotatingFileHandler
 
 
 def singleton (cls, *args, **kwargs):
