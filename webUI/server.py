@@ -34,8 +34,8 @@ async def reply(request):
 
 @app.route('/weixin', methods=['GET', 'POST'])
 async def weixin_reply(request):
-    res = request_para(request)
     if request.method == 'GET':
+        res = request_para(request)
         sign_ture = res.get('signature')
         time_stamp = res.get('timestamp')
         nonce_ = res.get('nonce')
