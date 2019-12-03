@@ -56,7 +56,7 @@ class Debug_hangder(object):
 
         # 创建一个handler，用于写入日志文件
         log_path =os.path.abspath(os.path.join(os.path.dirname(__file__), "../loginfo"))
-        name = log_path + 'EveryCoinHelps.log'
+        name = log_path + '/EveryCoinHelps.log'
         if not os.path.isdir(log_path):
             os.makedirs(log_path)
 
