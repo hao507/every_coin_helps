@@ -3,10 +3,12 @@ from sanic import Sanic
 from sanic.response import json as sanic_json
 from sanic import response
 from jinja2 import Template
-from common.utils import project_path
+from common.utils import project_path,log_exp
 from webUI.web_call_service import web_call_main
 from wechatpy.utils import check_signature
 from wechatpy.exceptions import InvalidSignatureException
+from wechatpy import parse_message
+from wechatpy.replies import TextReply, ImageReply
 
 
 app = Sanic()
@@ -36,22 +38,15 @@ async def weixin_reply(request):
     time_stamp = res.get('timestamp')
     nonce_ = res.get('nonce')
     echo_str = res.get('echostr')
+
     try:
         check_signature(token='4725471112', signature=sign_ture, timestamp=time_stamp, nonce=nonce_)
+        return_str = echo_str
     except InvalidSignatureException:
-        pass
-    print('问题：',ask)
-    if ask.strip()=='':
-        res_msg = '-1'
-    else:
-        res_msg = web_call_main(ask.strip())
-        res_msg = res_msg.strip()
+        log_exp.error('InvalidSignatureException')
+        return_str = 'InvalidSignatureException'
 
-    # 如果接受到的内容为空，则给出相应的恢复
-    if res_msg == ' ' or res_msg=='-1':
-        res_msg = '问题未收入！请重试。'
-    print('答案：',res_msg)
-    return sanic_json({'text': res_msg})
+    return response.text(body=return_str)
 
 @app.route("/", methods=['GET'])
 async def index(request):
