@@ -72,6 +72,6 @@ def request_para(request):
 # 启动APP
 if (__name__ == "__main__"):
     #web_call_service('')
-    app.run('0.0.0.0', 443)
+    app.run('0.0.0.0', 80)
 
 
