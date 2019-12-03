@@ -4,7 +4,7 @@ from sanic.response import json as sanic_json
 from sanic import response
 from jinja2 import Template
 from common.utils import project_path
-from .web_call_service import web_call_main
+from webUI.web_call_service import web_call_main
 app = Sanic()
 
 
