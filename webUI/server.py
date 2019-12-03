@@ -5,6 +5,10 @@ from sanic import response
 from jinja2 import Template
 from common.utils import project_path
 from webUI.web_call_service import web_call_main
+from wechatpy.utils import check_signature
+from wechatpy.exceptions import InvalidSignatureException
+
+
 app = Sanic()
 
 
@@ -28,7 +32,14 @@ async def reply(request):
 @app.route('/weixin', methods=['GET', 'POST'])
 async def weixin_reply(request):
     res = request_para(request)
-    ask = res.get('question')
+    sign_ture = res.get('signature')
+    time_stamp = res.get('timestamp')
+    nonce_ = res.get('nonce')
+    echo_str = res.get('echostr')
+    try:
+        check_signature(token='4725471112', signature=sign_ture, timestamp=time_stamp, nonce=nonce_)
+    except InvalidSignatureException:
+        pass
     print('问题：',ask)
     if ask.strip()=='':
         res_msg = '-1'
