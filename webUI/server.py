@@ -31,22 +31,35 @@ async def reply(request):
     print('答案：',res_msg)
     return sanic_json({'text': res_msg})
 
+
 @app.route('/weixin', methods=['GET', 'POST'])
 async def weixin_reply(request):
     res = request_para(request)
-    sign_ture = res.get('signature')
-    time_stamp = res.get('timestamp')
-    nonce_ = res.get('nonce')
-    echo_str = res.get('echostr')
+    if request.method == 'GET':
+        sign_ture = res.get('signature')
+        time_stamp = res.get('timestamp')
+        nonce_ = res.get('nonce')
+        echo_str = res.get('echostr')
+        try:
+            check_signature(token='4725471112', signature=sign_ture, timestamp=time_stamp, nonce=nonce_)
+            return_str = echo_str
+        except InvalidSignatureException:
+            log_exp.error('InvalidSignatureException')
+            return_str = 'InvalidSignatureException'
+        return response.text(body=return_str)
+    elif request.method == 'POST':
+        xml = request.stream.read()
+        msg = parse_message(xml)
+        if msg.type == 'text':
+            reply = TextReply(content=msg.content, message=msg)
+            xml = reply.render()
+            return response.text(body=xml, status=200)
+        else:
+            return response.text(body='NaN')
+    else:
+        return response.text(body='NaN')
 
-    try:
-        check_signature(token='4725471112', signature=sign_ture, timestamp=time_stamp, nonce=nonce_)
-        return_str = echo_str
-    except InvalidSignatureException:
-        log_exp.error('InvalidSignatureException')
-        return_str = 'InvalidSignatureException'
 
-    return response.text(body=return_str)
 
 @app.route("/", methods=['GET'])
 async def index(request):
