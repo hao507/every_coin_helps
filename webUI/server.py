@@ -50,7 +50,7 @@ async def weixin_reply(request):
     elif request.method == 'POST':
         xml = request.body
         msg = parse_message(xml)
-        if msg.type == 'text':
+        if msg.type == 'text' and msg.source == 'opfB6w88fRxMh6DJirlzW8biOFNw': # 固定1148270327这个用户
             res_msg = web_call_main(msg.content.strip())
             reply = TextReply(content=res_msg, message=msg)
             xml = reply.render()
