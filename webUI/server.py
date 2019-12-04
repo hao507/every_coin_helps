@@ -48,7 +48,7 @@ async def weixin_reply(request):
             return_str = 'InvalidSignatureException'
         return response.text(body=return_str)
     elif request.method == 'POST':
-        xml = request.stream.read()
+        xml = request.body
         msg = parse_message(xml)
         if msg.type == 'text':
             reply = TextReply(content=msg.content, message=msg)
