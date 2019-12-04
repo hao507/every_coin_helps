@@ -51,7 +51,8 @@ async def weixin_reply(request):
         xml = request.body
         msg = parse_message(xml)
         if msg.type == 'text':
-            reply = TextReply(content=msg.content, message=msg)
+            res_msg = web_call_main(msg.content.strip())
+            reply = TextReply(content=res_msg, message=msg)
             xml = reply.render()
             return response.text(body=xml, status=200)
         else:
