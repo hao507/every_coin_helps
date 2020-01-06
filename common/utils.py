@@ -147,7 +147,7 @@ def project_path():
 '''
   #使用多线程执行更方便。协程容易出问题。另外，阿里云服务器吧25端口封禁了，只能采用ssl加密的465端口, 主题不能为敏感词test等
 '''
-def send_mail(title, content, username='a1148270327@126.com', passwd='Aa110998', recv='15000959076@163.com', mail_host='smtp.126.com', port=465):
+def send_mail(title, content, username='a1148270327@126.com', passwd='1234567', recv='110110mailZ@163.com', mail_host='smtp.126.com', port=465):
 
     msg = MIMEText(content, _subtype='plain', _charset='utf-8')  # 邮件内容
     msg['Subject'] = Header(title,'utf-8' ) # 邮件主题
